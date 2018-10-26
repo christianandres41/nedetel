@@ -963,6 +963,7 @@ EOT;
                                          */
 
                                         //PLANTILLA WORD
+					\PhpOffice\PhpWord\Settings::setOutputEscapingEnabled(true);
                                         $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($ruta_plantilla);
 
                                         foreach ($campos_valores as $campo => $valor) {
