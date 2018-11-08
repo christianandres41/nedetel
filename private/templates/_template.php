@@ -90,6 +90,13 @@ body {
             <li role="separator" class="divider"></li>
           </ul>
         </li>
+	<li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Contabilidad<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="/autoadmin/sai_costo_proveedor">Costos de proveedores</a></li>
+
+          </ul>
+        </li>
         <!--
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Factibilidades<span class="caret"></span></a>
