@@ -116,6 +116,8 @@ foreach ($_POST as $k => $v){
         $vae_nodo = 'null';
         $vae_ciudad = 'null';
         //$vae_conexion = 'null';
+		$vae_costo_proveedor = 'null';
+		$vae_precio_cliente = 'null';
 
         if ($v === '0' || (!empty($v) && $v != 'null')) {
             $result_cae = q("
@@ -298,6 +300,12 @@ foreach ($_POST as $k => $v){
                     $vae_conexion = p_formatear_valor_sql($v, 'nodo');
                     break;
                      */
+				case 'costo_proveedor':
+                   		 $vae_costo_proveedor = p_formatear_valor_sql($v, 'costo_proveedor');
+		                    break;
+				case 'precio_cliente':
+                    		$vae_precio_cliente = p_formatear_valor_sql($v, 'precio_cliente');
+		                    break;
                 }
             }
         }
@@ -338,6 +346,8 @@ foreach ($_POST as $k => $v){
                 , vae_nodo
                 , vae_ciudad
                 , vae_creado_por
+		, vae_costo_proveedor
+		, vae_precio_cliente
             ) VALUES (
                 $cae_id
                 , $paa_id
@@ -347,6 +357,8 @@ foreach ($_POST as $k => $v){
                 , $vae_nodo
                 , $vae_ciudad
                 , {$_SESSION['usu_id']}
+		, $vae_costo_proveedor
+		, $vae_precio_cliente
             ) RETURNING *
         ");
         $respuesta[] = $return;
@@ -354,3 +366,4 @@ foreach ($_POST as $k => $v){
 }
 
 echo json_encode($respuesta);
+

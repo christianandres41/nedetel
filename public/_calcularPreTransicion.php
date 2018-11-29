@@ -700,9 +700,9 @@ EOT;
                 ///////////
                 // Precios (cliente):
                 //
-                $campos_valores['PRECIO_CAPACIDAD_CONTRATADA'] = $campos_valores['CAPACIDAD_CONTRATADA'] * $campos_valores['PRECIO_MB'];
-                $campos_valores['PRECIO_CAPACIDAD_FACTURADA']  = $campos_valores['CAPACIDAD_FACTURADA']  * $campos_valores['PRECIO_MB'];
-                $campos_valores['PRECIO_CAPACIDAD_SOLICITADA'] = $campos_valores['CAPACIDAD_SOLICITADA'] * $campos_valores['PRECIO_MB'];
+                $campos_valores['PRECIO_CAPACIDAD_CONTRATADA'] = $campos_valores['CAPACIDAD_CONTRATADA'] * $campos_valores['PRECIO_CLIENTE'];
+                $campos_valores['PRECIO_CAPACIDAD_FACTURADA']  = $campos_valores['CAPACIDAD_FACTURADA']  * $campos_valores['PRECIO_CLIENTE'];
+                $campos_valores['PRECIO_CAPACIDAD_SOLICITADA'] = $campos_valores['CAPACIDAD_SOLICITADA'] * $campos_valores['PRECIO_CLIENTE'];
 
                 $campos_valores['PRECIO_CAPACIDAD'] = $campos_valores['PRECIO_CAPACIDAD_CONTRATADA'];
                 $campos_valores['PRECIO_MENSUAL'] = $campos_valores['PRECIO_CAPACIDAD'];
@@ -741,15 +741,15 @@ EOT;
                 $campos_valores['TOTAL_MENSUAL_SOLICITADO'] = $campos_valores['PRECIO_CAPACIDAD_SOLICITADA'] + $campos_valores['IVA_MENSUAL_SOLICITADO'];
 
                 
-                $campos_valores['PRECIO_TOTAL'] = (isset($campos_valores['CAPACIDAD_FACTURADA'])?$campos_valores['CAPACIDAD_FACTURADA'] : 0) * (isset($campos_valores['PRECIO_MB'])?$campos_valores['PRECIO_MB'] : 0);
+                $campos_valores['PRECIO_TOTAL'] = (isset($campos_valores['CAPACIDAD_FACTURADA'])?$campos_valores['CAPACIDAD_FACTURADA'] : 0) * (isset($campos_valores['PRECIO_CLIENTE'])?$campos_valores['PRECIO_CLIENTE'] : 0);
 
 
                 ///////////
                 // Costos (proveedor):
                 //
-                $campos_valores['COSTO_CAPACIDAD_CONTRATADA'] = $campos_valores['CAPACIDAD_CONTRATADA'] * $campos_valores['COSTO_MB'];
-                $campos_valores['COSTO_CAPACIDAD_FACTURADA']  = $campos_valores['CAPACIDAD_FACTURADA']  * $campos_valores['COSTO_MB'];
-                $campos_valores['COSTO_CAPACIDAD_SOLICITADA'] = $campos_valores['CAPACIDAD_SOLICITADA'] * $campos_valores['COSTO_MB'];
+                $campos_valores['COSTO_CAPACIDAD_CONTRATADA'] = $campos_valores['CAPACIDAD_CONTRATADA'] * $campos_valores['COSTO_PROVEEDOR'];
+                $campos_valores['COSTO_CAPACIDAD_FACTURADA']  = $campos_valores['CAPACIDAD_FACTURADA']  * $campos_valores['COSTO_PROVEEDOR'];
+                $campos_valores['COSTO_CAPACIDAD_SOLICITADA'] = $campos_valores['CAPACIDAD_SOLICITADA'] * $campos_valores['COSTO_PROVEEDOR'];
 
                 $campos_valores['COSTO_CAPACIDAD'] = $campos_valores['COSTO_CAPACIDAD_CONTRATADA'];
                 $campos_valores['COSTO_MENSUAL'] = $campos_valores['COSTO_CAPACIDAD'];
@@ -784,7 +784,7 @@ EOT;
                 $campos_valores['TOTAL_MENSUAL_FACTURADO_COSTO'] = $campos_valores['COSTO_CAPACIDAD_FACTURADA'] + $campos_valores['IVA_MENSUAL_FACTURADO_COSTO'];
 
                 
-                $campos_valores['COSTO_TOTAL'] = (isset($campos_valores['CAPACIDAD_CONTRATADA'])?$campos_valores['CAPACIDAD_CONTRATADA'] : 0) * (isset($campos_valores['COSTO_MB'])?$campos_valores['COSTO_MB'] : 0);
+                $campos_valores['COSTO_TOTAL'] = (isset($campos_valores['CAPACIDAD_CONTRATADA'])?$campos_valores['CAPACIDAD_CONTRATADA'] : 0) * (isset($campos_valores['COSTO_PROVEEDOR'])?$campos_valores['COSTO_PROVEEDOR'] : 0);
 
                 //var_dump($campos_valores);
                 //foreach($campos_valores as $k => $v){

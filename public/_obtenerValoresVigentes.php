@@ -16,7 +16,21 @@ if (!empty($ate_id)) {
     //    SELECT concat(ate_secuencial, '. ', COALESCE(ate_codigo, '(sin ID)'))
     $result = q("
         SELECT *
-        ,concat(vae_texto, vae_numero, to_char(vae_fecha, 'YYYY-MM-DD'), vae_nodo, vae_ciudad) AS valor
+        ,concat(vae_texto, vae_numero, to_char(vae_fecha, 'YYYY-MM-DD'), vae_nodo, (
+        SELECT prc_precio_mb
+        FROM
+         sai_precio_cliente
+        WHERE
+        prc_borrado IS NULL
+        AND prc_id = vae_precio_cliente
+    ), (
+        SELECT cop_costo_mb
+        FROM
+         sai_costo_proveedor
+        WHERE
+        cop_borrado IS NULL
+        AND cop_id = vae_costo_proveedor
+    ), vae_ciudad) AS valor
     , (
         SELECT 
         CASE 
@@ -45,6 +59,22 @@ if (!empty($ate_id)) {
         ciu_borrado IS NULL
         AND ciu_id = vae_ciudad
     ) AS ciudad
+    , (
+        SELECT cop_nombre 
+        FROM 
+         sai_costo_proveedor
+        WHERE 
+        cop_borrado IS NULL
+        AND cop_id = vae_costo_proveedor
+    ) AS costo_proveedor
+    , (
+        SELECT prc_nombre
+        FROM
+         sai_precio_cliente
+        WHERE
+        prc_borrado IS NULL
+        AND prc_id = vae_precio_cliente
+    ) AS precio_cliente
         FROM sai_paso_atencion
         , sai_valor_extra
         , sai_campo_extra
@@ -77,8 +107,10 @@ if (!empty($ate_id)) {
                 $etiqueta = isset($etiquetas[$r[cae_codigo]]) ? $etiquetas[$r[cae_codigo]] : $codigo;
                 $nodo = $r[nodo];
                 $ciudad = $r[ciudad];
+                $costo_proveedor = $r[costo_proveedor];
+                $precio_cliente = $r[precio_cliente];
                 $valor = $r[valor];
-                $valor_detallado = (empty($nodo) && empty($ciudad)) ? $valor : $nodo . $ciudad;
+                $valor_detallado = (empty($nodo) && empty($ciudad) && empty($costo_proveedor) && empty($precio_cliente)) ? $valor : $precio_cliente . $costo_proveedor . $nodo . $ciudad;
 
                 $codigos[$r['cae_codigo']] = array(
                     'codigo' => $r[cae_codigo]
@@ -87,6 +119,8 @@ if (!empty($ate_id)) {
                     , 'valor_detallado' => $valor_detallado
                     , 'nodo' => $nodo
                     , 'ciudad' => $ciudad
+		    , 'costo_proveedor' => $costo_proveedor
+		    , 'precio_cliente' => $precio_cliente
 
                 );
             }

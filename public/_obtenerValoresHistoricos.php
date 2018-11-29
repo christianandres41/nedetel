@@ -28,6 +28,21 @@ if (!empty($ate_id)) {
             vae_texto
             ,vae_numero
             ,to_char(vae_fecha, 'YYYY-MM-DD HH24:MI')
+	    , (
+        SELECT prc_nombre
+        FROM
+         sai_precio_cliente
+        WHERE
+        prc_borrado IS NULL
+        AND prc_id = vae_precio_cliente
+    ), (
+        SELECT cop_nombre
+        FROM
+         sai_costo_proveedor
+        WHERE
+        cop_borrado IS NULL
+        AND cop_id = vae_costo_proveedor
+    )
         ) AS valor
         , (
             SELECT 

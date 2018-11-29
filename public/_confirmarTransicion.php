@@ -269,8 +269,8 @@ if (!empty($_POST) && isset($_POST['ate_id']) && !empty($_POST['ate_id']) && iss
         $capacidad_contratada = isset($campos_valores['CAPACIDAD_CONTRATADA']) ? $campos_valores['CAPACIDAD_CONTRATADA'] : 0;
         $capacidad_facturada = isset($campos_valores['CAPACIDAD_FACTURADA']) ? $campos_valores['CAPACIDAD_FACTURADA'] : 0;
         $capacidad_solicitada = isset($campos_valores['CAPACIDAD_SOLICITADA']) ? $campos_valores['CAPACIDAD_SOLICITADA'] : 0;
-        $precio_mb = isset($campos_valores['PRECIO_MB']) ? $campos_valores['PRECIO_MB'] : 0;
-        $costo_mb = isset($campos_valores['COSTO_MB']) ? $campos_valores['COSTO_MB'] : 0;
+        $precio_mb = isset($campos_valores['PRECIO_CLIENTE']) ? $campos_valores['PRECIO_CLIENTE'] : 0;
+        $costo_mb = isset($campos_valores['COSTO_PROVEEDOR']) ? $campos_valores['COSTO_PROVEEDOR'] : 0;
 
         $servicio_activado = "NULL";
         $sql = ("

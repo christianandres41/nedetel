@@ -52,7 +52,21 @@ if ($extender_campos_anteriores == 1) {
 $sql = "
     SELECT *
     ,(
-        SELECT concat(vae_texto, vae_numero, to_char(vae_fecha, 'YYYY-MM-DD'), vae_nodo, vae_ciudad) 
+        SELECT concat(vae_texto, vae_numero, to_char(vae_fecha, 'YYYY-MM-DD'), vae_nodo, (
+        SELECT prc_precio_mb
+        FROM
+         sai_precio_cliente
+        WHERE
+        prc_borrado IS NULL
+        AND prc_id = vae_precio_cliente
+    ), (
+        SELECT cop_costo_mb
+        FROM
+         sai_costo_proveedor
+        WHERE
+        cop_borrado IS NULL
+        AND cop_id = vae_costo_proveedor
+    ), vae_ciudad) 
         FROM sai_valor_extra
         , sai_paso_atencion 
         WHERE vae_borrado IS NULL 
@@ -68,7 +82,21 @@ $sql = "
         LIMIT 1
     ) AS valor
     ,(
-        SELECT concat(vae_texto, vae_numero, to_char(vae_fecha, 'YYYY-MM-DD'), vae_nodo, vae_ciudad) 
+        SELECT concat(vae_texto, vae_numero, to_char(vae_fecha, 'YYYY-MM-DD'), vae_nodo, (
+        SELECT prc_precio_mb
+        FROM
+         sai_precio_cliente
+        WHERE
+        prc_borrado IS NULL
+        AND prc_id = vae_precio_cliente
+    ), (
+        SELECT cop_costo_mb
+        FROM
+         sai_costo_proveedor
+        WHERE
+        cop_borrado IS NULL
+        AND cop_id = vae_costo_proveedor
+    ), vae_ciudad) 
         FROM sai_valor_extra
         , sai_paso_atencion 
         WHERE vae_borrado IS NULL 
@@ -106,7 +134,21 @@ $sql = "
         LIMIT 1
     ) AS valor_por_defecto 
     ,(
-        SELECT concat(vae_texto, vae_numero, to_char(vae_fecha, 'YYYY-MM-DD'), vae_nodo, vae_ciudad) 
+        SELECT concat(vae_texto, vae_numero, to_char(vae_fecha, 'YYYY-MM-DD'), vae_nodo, (
+        SELECT prc_precio_mb
+        FROM
+         sai_precio_cliente
+        WHERE
+        prc_borrado IS NULL
+        AND prc_id = vae_precio_cliente
+    ), (
+        SELECT cop_costo_mb
+        FROM
+         sai_costo_proveedor
+        WHERE
+        cop_borrado IS NULL
+        AND cop_id = vae_costo_proveedor
+    ), vae_ciudad) 
         FROM sai_valor_extra
         , sai_paso_atencion 
         WHERE vae_borrado IS NULL 
@@ -125,7 +167,21 @@ $sql = "
         LIMIT 1
     ) AS menor_que 
     ,(
-        SELECT concat(vae_texto, vae_numero, to_char(vae_fecha, 'YYYY-MM-DD'), vae_nodo, vae_ciudad) 
+        SELECT concat(vae_texto, vae_numero, to_char(vae_fecha, 'YYYY-MM-DD'), vae_nodo, (
+        SELECT prc_precio_mb
+        FROM
+         sai_precio_cliente
+        WHERE
+        prc_borrado IS NULL
+        AND prc_id = vae_precio_cliente
+    ), (
+        SELECT cop_costo_mb
+        FROM
+         sai_costo_proveedor
+        WHERE
+        cop_borrado IS NULL
+        AND cop_id = vae_costo_proveedor
+    ), vae_ciudad) 
         FROM sai_valor_extra
         , sai_paso_atencion 
         WHERE vae_borrado IS NULL 

@@ -1532,6 +1532,14 @@ $(document).ready(function() {
                     var nod_id = campo['valor'];
                     valor_detallado = '<a href="#" onclick="p_abrir_detalle_nodo('+nod_id+');return false;">'+valor_detallado+'</a>';
                 }
+		if (campo['costo_proveedor']) {
+                    var cop_id = campo['valor'];
+                    //valor_detallado = '<a href="#" onclick="p_abrir_detalle_costo_proveedor('+cop_id+');return false;">'+valor_detallado+'</a>';
+                }
+		if (campo['precio_cliente']) {
+                    var prc_id = campo['valor'];
+                    //valor_detallado = '<a href="#" onclick="p_abrir_detalle_precio_cliente('+prc_id+');return false;">'+valor_detallado+'</a>';
+                }
                 campos_estado_vigente += ''
                     + '<tr>'
                     + '<th style="width:50%;text-align:right;">' + campo['etiqueta'] + ':</th>'
@@ -1827,6 +1835,64 @@ function p_inicializar_autocompletar(id){
     $('.typeahead-nodo').typeahead({
         source:function(query, process){
             $.get('/_listarNodos/' + query, function(data){
+                console.log(data);
+                data = JSON.parse(data);
+                process(data.lista);
+            });
+        },
+        displayField:'name',
+        valueField:'id',
+        highlighter:function(name){
+            var ficha = '';
+            ficha +='<div>';
+            ficha +='<h4>'+name+'</h4>';
+            ficha +='</div>';
+            return ficha;
+        },
+        updater:function(item){
+            var id = $(this.$element[0]).prop('id').split('_').pop();
+
+            console.log('typeahead ID:' , id);
+
+            $('#campo_extra_'+id).val(item.id);
+            $('#campo_extra_detalle_valor_'+id).text(item.name);
+            $('#campo_extra_grupo_'+id).hide();
+            $('#campo_extra_detalle_'+id).show();
+            return item.name;
+        }
+    });
+   $('.typeahead-costo_proveedor').typeahead({
+        source:function(query, process){
+            $.get('/_listarCostos_proveedor/' + query, function(data){
+                console.log(data);
+                data = JSON.parse(data);
+                process(data.lista);
+            });
+        },
+        displayField:'name',
+        valueField:'id',
+        highlighter:function(name){
+            var ficha = '';
+            ficha +='<div>';
+            ficha +='<h4>'+name+'</h4>';
+            ficha +='</div>';
+            return ficha;
+        },
+        updater:function(item){
+            var id = $(this.$element[0]).prop('id').split('_').pop();
+
+            console.log('typeahead ID:' , id);
+
+            $('#campo_extra_'+id).val(item.id);
+            $('#campo_extra_detalle_valor_'+id).text(item.name);
+            $('#campo_extra_grupo_'+id).hide();
+            $('#campo_extra_detalle_'+id).show();
+            return item.name;
+        }
+    });
+  $('.typeahead-precio_cliente').typeahead({
+        source:function(query, process){
+            $.get('/_listarPrecios_cliente/' + query, function(data){
                 console.log(data);
                 data = JSON.parse(data);
                 process(data.lista);
@@ -2720,7 +2786,81 @@ function p_desplegar_campos(campos, padre_id) {
                         '</div>' +
                         '</div>'+
                         '';
-                } else {
+                } else if (campo['tipo_dato'] == 'costo_proveedor') {
+                    var descripcion = '';
+                    var grupo_style = '';
+                    var detalle_style = 'style="display:none;"';
+
+                    if (campo['costo_proveedor']) {
+                        descripcion = campo['costo_proveedor'];
+                        grupo_style = 'style="display:none;"';
+                        detalle_style = '';
+                    }
+
+                    var contenido_costo_proveedor = '';
+                    var contenido_costo_proveedor = ''+
+                        '<div class="col-sm-' + (col2 ) + '">' +
+                            '<input type="text" '+campo['cae_validacion']+' class="form-control typeahead-costo_proveedor" id="campo_extra_typeahead_'+campo['cae_id']+'" xxxname="campo_extra_typeahead_'+campo['cae_id']+'" data-provide="typeahead" autocomplete="off" placeholder="Ingrese descripcion del costo" value="' + valor + '" onblur="p_validar(this)">' +
+                        '</div>' +
+                        
+                        '';
+
+
+                    contenido += ''+
+                        '<div class="form-group" '+grupo_style+' id="campo_extra_grupo_'+campo['cae_id']+'">' +
+                            '<label for="campo_extra_typeahead_'+campo['cae_id']+'" class="col-sm-' + col1 + ' control-label">'+campo['cae_texto']+ ':</label>' +
+                            '<input type="hidden" id="campo_extra_' + campo['cae_id'] + '" name="campo_extra_' + campo['cae_id'] + '" value="' + valor + '">' +
+                            '<div class="col-sm-' + col2 + '">'+
+                                contenido_costo_proveedor +
+                            '</div>'+
+                        '</div>'+
+                        '<div class="form-group" '+detalle_style+' id="campo_extra_detalle_'+campo['cae_id']+'">' +
+                            '<label class="col-sm-' + col1 + ' control-label">'+campo['cae_texto']+ ':</label>' +
+                            '<div class="col-sm-' + (col2 - 2) + '">' +
+                                '<span id="campo_extra_detalle_valor_' + campo['cae_id'] + '">' + descripcion + '</span>' +
+                            '</div>' +
+                            '<div class="col-sm-1">' +
+                                '<button type="button" class="btn btn-danger boton-quitar" id="campo_extra_quitar_'+campo['cae_id']+'" onclick="p_quitar_opcion_typeahead('+campo['cae_id']+')"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>' +
+                            '</div>' +
+                        '</div>'+
+                        '';
+                }	else if (campo['tipo_dato'] == 'precio_cliente') {
+                    var descripcion = '';
+                    var grupo_style = '';
+                    var detalle_style = 'style="display:none;"';
+
+                    if (campo['precio_cliente']) {
+                        descripcion = campo['precio_cliente'];
+                        grupo_style = 'style="display:none;"';
+                        detalle_style = '';
+                    }
+
+                    var contenido_precio_cliente = '';
+                    var contenido_precio_cliente = ''+
+                        '<div class="col-sm-' + (col2 ) + '">' +
+                            '<input type="text" '+campo['cae_validacion']+' class="form-control typeahead-precio_cliente" id="campo_extra_typeahead_'+campo['cae_id']+'" xxxname="campo_extra_typeahead_'+campo['cae_id']+'" data-provide="typeahead" autocomplete="off" placeholder="Ingrese descripcion del precio" value="' + valor + '" onblur="p_validar(this)">' +
+                        '</div>' +
+                        
+                        '';
+                    contenido += ''+
+                        '<div class="form-group" '+grupo_style+' id="campo_extra_grupo_'+campo['cae_id']+'">' +
+                            '<label for="campo_extra_typeahead_'+campo['cae_id']+'" class="col-sm-' + col1 + ' control-label">'+campo['cae_texto']+ ':</label>' +
+                            '<input type="hidden" id="campo_extra_' + campo['cae_id'] + '" name="campo_extra_' + campo['cae_id'] + '" value="' + valor + '">' +
+                            '<div class="col-sm-' + col2 + '">'+
+                                contenido_precio_cliente +
+                            '</div>'+
+                        '</div>'+
+                        '<div class="form-group" '+detalle_style+' id="campo_extra_detalle_'+campo['cae_id']+'">' +
+                            '<label class="col-sm-' + col1 + ' control-label">'+campo['cae_texto']+ ':</label>' +
+                            '<div class="col-sm-' + (col2 - 2) + '">' +
+                                '<span id="campo_extra_detalle_valor_' + campo['cae_id'] + '">' + descripcion + '</span>' +
+                            '</div>' +
+                            '<div class="col-sm-1">' +
+                                '<button type="button" class="btn btn-danger boton-quitar" id="campo_extra_quitar_'+campo['cae_id']+'" onclick="p_quitar_opcion_typeahead('+campo['cae_id']+')"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>' +
+                            '</div>' +
+                        '</div>'+
+                        '';
+                }	else {
                     contenido += '<div class="form-group">' +
                         '<label for="campo_extra_' + campo['cae_id'] + '" class="col-sm-' + col1 + ' control-label">' + campo['cae_texto'] + ':</label>' +
                         '<div class="col-sm-' + col2 + '">' +
