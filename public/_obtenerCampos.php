@@ -274,6 +274,66 @@ $sql = "
         FROM sai_tipo_dato
         WHERE tid_id = cae.cae_tipo_dato
     ) AS tipo_dato
+    ,(
+        SELECT prc_nombre
+        FROM sai_paso_atencion
+        , sai_precio_cliente
+        , sai_valor_extra
+        WHERE
+        prc_borrado IS NULL
+	AND paa_borrado IS NULL
+	AND vae_borrado IS NULL
+	AND vae_paso_atencion = paa_id
+	AND vae_campo_extra = cae.cae_id
+        /*AND NOT paa_confirmado IS NULL*/
+        AND paa_atencion = $ate_id
+        AND prc_id = vae_precio_cliente
+    ) AS precio_cliente
+    ,(
+        SELECT cop_nombre
+        FROM sai_paso_atencion
+        , sai_costo_proveedor
+        , sai_valor_extra
+        WHERE
+        cop_borrado IS NULL
+        AND paa_borrado IS NULL
+        AND vae_borrado IS NULL
+        AND vae_paso_atencion = paa_id
+        AND vae_campo_extra = cae.cae_id
+        /*AND NOT paa_confirmado IS NULL*/
+        AND paa_atencion = $ate_id
+        AND cop_id = vae_costo_proveedor
+    ) AS costo_proveedor
+    ,(
+        SELECT prc_id
+        FROM sai_paso_atencion
+        , sai_precio_cliente
+        , sai_valor_extra
+        WHERE
+        prc_borrado IS NULL
+        AND paa_borrado IS NULL
+        AND vae_borrado IS NULL
+        AND vae_paso_atencion = paa_id
+        AND vae_campo_extra = cae.cae_id
+        /*AND NOT paa_confirmado IS NULL*/
+        AND paa_atencion = $ate_id
+        AND prc_id = vae_precio_cliente
+    ) AS precio_cliente_id
+    ,(
+        SELECT cop_id
+        FROM sai_paso_atencion
+        , sai_costo_proveedor
+        , sai_valor_extra
+        WHERE
+        cop_borrado IS NULL
+        AND paa_borrado IS NULL
+        AND vae_borrado IS NULL
+        AND vae_paso_atencion = paa_id
+        AND vae_campo_extra = cae.cae_id
+        /*AND NOT paa_confirmado IS NULL*/
+        AND paa_atencion = $ate_id
+        AND cop_id = vae_costo_proveedor
+    ) AS costo_proveedor_id
     FROM sai_campo_extra AS cae
     WHERE cae.cae_borrado IS NULL
     AND cae.cae_transicion_estado_atencion IN (

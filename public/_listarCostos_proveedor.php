@@ -3,6 +3,7 @@
 $respuestas = array();
 $error = array();
 $query = $args[0];
+$ate_id = $args[1];
 
 $extension_minima = 2;
 
@@ -29,6 +30,11 @@ if (strlen($query) >= $extension_minima) {
 		
         FROM sai_costo_proveedor
         ,sai_pertinencia_proveedor
+	
+	LEFT OUTER JOIN sai_atencion
+        on pep_id=ate_pertinencia_proveedor
+
+
         WHERE cop_borrado IS NULL
         AND pep_borrado IS NULL
 		AND cop_servicio=pep_id
@@ -37,6 +43,9 @@ if (strlen($query) >= $extension_minima) {
 	    OR pep_nombre ILIKE '%$query%'
             /*OR nod_codigo ILIKE '%$query%'
             OR nod_descripcion ILIKE '%$query%'*/
+        )
+        AND (
+        ate_id=$ate_id 
         )
         ORDER BY pep_nombre
     ");
@@ -82,7 +91,8 @@ if (strlen($query) >= $extension_minima) {
     if ($result) {
         $names = array();
         foreach($result as $r){
-            $respuesta = array('id' => $r['cop_id'], 'name' => ($r['cop_nombre'] . ': ' . $r['pep_nombre']));
+            //$respuesta = array('id' => $r['cop_id'], 'name' => ($r['cop_nombre'] . ': ' . $r['pep_nombre']));
+            $respuesta = array('id' => $r['cop_id'], 'name' => ($r['cop_nombre']));
             if (!isset($names[$respuesta['name']])) {
                 $respuestas[] = $respuesta; 
                 $names[$respuesta['name']] = $respuesta['id'];

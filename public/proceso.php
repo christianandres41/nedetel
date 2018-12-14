@@ -2,6 +2,7 @@
 //echo ($_solo_lectura ? 'SI solo lectura' : 'NO solo lectura');
 //echo '<pre>';
 //var_dump($_SESSION['seguridades']);
+//var_dump($_SESSION);
 //echo '</pre>';
     $result_destinatarios = q("
         SELECT des_nombre FROM sai_destinatario
@@ -937,6 +938,117 @@ overflow: hidden;
 }
 </style>
 
+<div id="modal_detalle_precio" class="modal fade autoalto" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-nuevo-title"><span id="detalle_precio_titulo"></span></h4>
+      </div>
+      <div class="modal-body">
+        <div class="form-horizontal" id="detalle_precio_contenido">
+<div class="form-group">
+          <?php $col1=2;$col2=4; ?>
+		  
+            <label class="col-sm-<?=$col1?> control-label">Descripción:</label>
+            <div class="col-sm-<?=$col2?>">
+              <span class="form-control" id="detalle_precio_nombre"></span>
+            </div>
+
+            <label class="col-sm-<?=$col1?> control-label">Valor:</label>
+            <div class="col-sm-<?=$col2?>">
+              <span class="form-control" id="detalle_precio_precio"></span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-sm-<?=$col1?> control-label">Fecha de vigencia:</label>
+            <div class="col-sm-<?=$col2?>">
+              <span class="form-control" id="detalle_precio_fecha_vigencia"></span>
+            </div>
+
+            <label class="col-sm-<?=$col1?> control-label">Fecha de creación:</label>
+            <div class="col-sm-<?=$col2?>">
+              <span class="form-control" id="detalle_precio_creado"></span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-sm-<?=$col1?> control-label">Servicio:</label>
+            <div class="col-sm-<?=$col2?>">
+              <span class="form-control" id="detalle_precio_servicio"></span>
+            </div>
+            <label class="col-sm-<?=$col1?> control-label">Empresa:</label>
+            <div class="col-sm-<?=$col2?>">
+              <span class="form-control" id="detalle_precio_cliente"></span>
+            </div>
+
+          </div>
+
+          
+        </div>
+		</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal_detalle_costo" class="modal fade autoalto" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-nuevo-title"><span id="detalle_costo_titulo"></span></h4>
+      </div>
+      <div class="modal-body">
+        <div class="form-horizontal" id="detalle_costo_contenido">
+<div class="form-group">
+          <?php $col1=2;$col2=4; ?>
+
+            <label class="col-sm-<?=$col1?> control-label">Descripción:</label>
+            <div class="col-sm-<?=$col2?>">
+              <span class="form-control" id="detalle_costo_nombre"></span>
+            </div>
+
+            <label class="col-sm-<?=$col1?> control-label">Valor:</label>
+            <div class="col-sm-<?=$col2?>">
+              <span class="form-control" id="detalle_costo_costo"></span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-sm-<?=$col1?> control-label">Fecha de vigencia:</label>
+            <div class="col-sm-<?=$col2?>">
+              <span class="form-control" id="detalle_costo_fecha_vigencia"></span>
+            </div>
+
+            <label class="col-sm-<?=$col1?> control-label">Fecha de creación:</label>
+            <div class="col-sm-<?=$col2?>">
+              <span class="form-control" id="detalle_costo_creado"></span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-sm-<?=$col1?> control-label">Pertinencia de proveedor:</label>
+            <div class="col-sm-<?=$col2?>">
+              <span class="form-control" id="detalle_costo_servicio"></span>
+            </div>
+
+          </div>
+
+
+        </div>
+ </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div id="modal_detalle_nodo" class="modal fade autoalto" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
@@ -1527,19 +1639,26 @@ $(document).ready(function() {
             data.forEach(function(campo){
                 var valor_detallado = (campo['valor_detallado']  == null) ? '' : campo['valor_detallado'];
                 console.log('CAMPO', campo);
-
+		
+		var excluir=false;		
+		
                 if (campo['nodo']) {
                     var nod_id = campo['valor'];
                     valor_detallado = '<a href="#" onclick="p_abrir_detalle_nodo('+nod_id+');return false;">'+valor_detallado+'</a>';
                 }
 		if (campo['costo_proveedor']) {
+		if (!(1== <?= ($_SESSION['rol']== '1' || $_SESSION['rol']== '3' || $_SESSION['rol']== '4' || $_SESSION['rol']== '9' )? '1': '0'; ?> ))
+			excluir=true; 
                     var cop_id = campo['valor'];
-                    //valor_detallado = '<a href="#" onclick="p_abrir_detalle_costo_proveedor('+cop_id+');return false;">'+valor_detallado+'</a>';
+                    valor_detallado = '<a href="#" onclick="p_abrir_detalle_costo_proveedor('+cop_id+');return false;">'+valor_detallado+'</a>';
                 }
 		if (campo['precio_cliente']) {
+		if (!(1== <?= ($_SESSION['rol']== '1' || $_SESSION['rol']== '3' || $_SESSION['rol']== '4' || $_SESSION['rol']== '9' )? '1': '0'; ?> ))
+                        excluir=true;
                     var prc_id = campo['valor'];
-                    //valor_detallado = '<a href="#" onclick="p_abrir_detalle_precio_cliente('+prc_id+');return false;">'+valor_detallado+'</a>';
+                    valor_detallado = '<a href="#" onclick="p_abrir_detalle_precio_cliente('+prc_id+');return false;">'+valor_detallado+'</a>';
                 }
+		if(!(excluir))
                 campos_estado_vigente += ''
                     + '<tr>'
                     + '<th style="width:50%;text-align:right;">' + campo['etiqueta'] + ':</th>'
@@ -1611,6 +1730,52 @@ function p_abrir_detalle_nodo_desde_historial(ate_id, nod_id){
             $('#modal_detalle_nodo').off('hidden.bs.modal');
         });
         p_abrir_detalle_nodo(nod_id);
+    });
+}
+function p_abrir_detalle_precio_cliente(prc_id){
+    console.log('En p_abrir_detalle_precio', prc_id);
+    $.get('/_obtenerPrecio/' + prc_id, function(data){
+        console.log('/_obtenerPrecio/' + prc_id, data);
+        data = JSON.parse(data);
+        console.log('data:', data);
+        if (data) {
+            var precio = data[0];
+            var contenido = '';
+            contenido += '<>';
+            var titulo = '';
+                titulo = 'Detalle de ' + precio['prc_nombre'];
+                $('#detalle_precio_titulo').text(titulo);
+                $('#detalle_precio_nombre').text(precio['prc_nombre']);
+                $('#detalle_precio_precio').text(precio['prc_precio_mb']);
+                $('#detalle_precio_cliente').text(precio['cli_razon_social']);
+                $('#detalle_precio_servicio').text(precio['ser_nombre']);
+                $('#detalle_precio_fecha_vigencia').text(precio['prc_fecha_ejecucion']);
+                $('#detalle_precio_creado').text(precio['prc_creado']);
+                $('#modal_detalle_precio').modal('show');
+        }
+    });
+}
+
+function p_abrir_detalle_costo_proveedor(cop_id){
+    console.log('En p_abrir_detalle_costo', cop_id);
+    $.get('/_obtenerCosto/' + cop_id, function(data){
+        console.log('/_obtenerCosto/' + cop_id, data);
+        data = JSON.parse(data);
+        console.log('data:', data);
+        if (data) {
+            var costo = data[0];
+            var contenido = '';
+            contenido += '<>';
+            var titulo = '';
+                titulo = 'Detalle de ' + costo['cop_nombre'];
+                $('#detalle_costo_titulo').text(titulo);
+                $('#detalle_costo_nombre').text(costo['cop_nombre']);
+                $('#detalle_costo_costo').text(costo['cop_costo_mb']);
+                $('#detalle_costo_servicio').text(costo['pep_nombre']);
+                $('#detalle_costo_fecha_vigencia').text(costo['cop_fecha_ejecucion']);
+                $('#detalle_costo_creado').text(costo['cop_creado']);
+                $('#modal_detalle_costo').modal('show');
+        }
     });
 }
 
@@ -1863,7 +2028,8 @@ function p_inicializar_autocompletar(id){
     });
    $('.typeahead-costo_proveedor').typeahead({
         source:function(query, process){
-            $.get('/_listarCostos_proveedor/' + query, function(data){
+	    ate_id = parseInt($('#ate_id').val());
+            $.get('/_listarCostos_proveedor/' + query + '/' + ate_id , function(data){
                 console.log(data);
                 data = JSON.parse(data);
                 process(data.lista);
@@ -1892,7 +2058,8 @@ function p_inicializar_autocompletar(id){
     });
   $('.typeahead-precio_cliente').typeahead({
         source:function(query, process){
-            $.get('/_listarPrecios_cliente/' + query, function(data){
+	    ate_id = parseInt($('#ate_id').val());
+            $.get('/_listarPrecios_cliente/' + query + '/' + ate_id , function(data){
                 console.log(data);
                 data = JSON.parse(data);
                 process(data.lista);
@@ -2795,6 +2962,7 @@ function p_desplegar_campos(campos, padre_id) {
                         descripcion = campo['costo_proveedor'];
                         grupo_style = 'style="display:none;"';
                         detalle_style = '';
+			valor = campo['costo_proveedor_id'];
                     }
 
                     var contenido_costo_proveedor = '';
@@ -2833,6 +3001,7 @@ function p_desplegar_campos(campos, padre_id) {
                         descripcion = campo['precio_cliente'];
                         grupo_style = 'style="display:none;"';
                         detalle_style = '';
+			valor = campo['precio_cliente_id'];
                     }
 
                     var contenido_precio_cliente = '';

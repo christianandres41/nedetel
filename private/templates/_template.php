@@ -93,8 +93,8 @@ body {
 	<li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Contabilidad<span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a href="/autoadmin/sai_costo_proveedor">Costos de proveedores</a></li>
-	     <li><a href="/autoadmin/sai_precio_cliente">Precios al cliente</a></li>
+            <li><a href="/costo_proveedores">Costos de proveedores</a></li>
+	     <li><a href="/precio_clientes">Precios al cliente</a></li>
 
           </ul>
         </li>

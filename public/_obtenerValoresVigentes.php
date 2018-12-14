@@ -14,17 +14,17 @@ if (!empty($ate_id)) {
     $codigos = array();
 
     //    SELECT concat(ate_secuencial, '. ', COALESCE(ate_codigo, '(sin ID)'))
-    $result = q("
+ /*   $result = q("
         SELECT *
         ,concat(vae_texto, vae_numero, to_char(vae_fecha, 'YYYY-MM-DD'), vae_nodo, (
-        SELECT prc_precio_mb
+        SELECT prc_id
         FROM
          sai_precio_cliente
         WHERE
         prc_borrado IS NULL
         AND prc_id = vae_precio_cliente
     ), (
-        SELECT cop_costo_mb
+        SELECT cop_id
         FROM
          sai_costo_proveedor
         WHERE
@@ -74,7 +74,23 @@ if (!empty($ate_id)) {
         WHERE
         prc_borrado IS NULL
         AND prc_id = vae_precio_cliente
-    ) AS precio_cliente
+    ) AS precio_cliente, 
+	(
+        SELECT cop_id 
+        FROM 
+         sai_costo_proveedor
+        WHERE 
+        cop_borrado IS NULL
+        AND cop_id = vae_costo_proveedor
+    ) AS costo_proveedor_id
+    , (
+        SELECT prc_id
+        FROM
+         sai_precio_cliente
+        WHERE
+        prc_borrado IS NULL
+        AND prc_id = vae_precio_cliente
+    ) AS precio_cliente_id
         FROM sai_paso_atencion
         , sai_valor_extra
         , sai_campo_extra
@@ -86,8 +102,165 @@ if (!empty($ate_id)) {
         AND NOT paa_confirmado IS NULL
         AND paa_atencion = $ate_id
         ORDER BY vae_creado
-    ");
+    ");*/
 
+    $result = q("
+	        SELECT *
+        ,concat(vae_texto, vae_numero, to_char(vae_fecha, 'YYYY-MM-DD'), vae_nodo, (
+        CASE WHEN ate_precio_cliente IS NOT NULL THEN
+			(SELECT prc_id
+			FROM
+			 sai_precio_cliente
+			WHERE
+			prc_borrado IS NULL
+			AND prc_id = ate_precio_cliente
+			AND vae_precio_cliente is not null)
+		ELSE 
+			(SELECT prc_id
+			FROM
+			 sai_precio_cliente
+			WHERE
+			prc_borrado IS NULL
+			AND prc_id = vae_precio_cliente
+			) 
+		END
+    ), (
+        CASE WHEN ate_costo_proveedor IS NOT NULL THEN
+			(SELECT cop_id
+			FROM
+			 sai_costo_proveedor
+			WHERE
+			cop_borrado IS NULL
+			AND cop_id = ate_costo_proveedor
+			AND vae_costo_proveedor is not null)
+		ELSE 
+			(SELECT cop_id
+        FROM 
+         sai_costo_proveedor
+        WHERE 
+        cop_borrado IS NULL
+        AND cop_id = vae_costo_proveedor
+			) 
+		END
+    ), vae_ciudad) AS valor
+    , (
+        SELECT 
+        CASE 
+            WHEN nod_atencion <> nod_atencion_referenciada
+            THEN concat(trim(concat('Servicio activo ', ate_secuencial, ' ', COALESCE(ate_codigo, ''))), ', punto ', nod_codigo)
+
+            ELSE concat('Punto ', nod_codigo)
+        END
+        FROM 
+        sai_nodo
+        , sai_ubicacion
+        , sai_atencion
+        WHERE 
+        nod_borrado IS NULL
+        AND ubi_borrado IS NULL
+        AND ate_borrado IS NULL
+        AND nod_id = vae_nodo
+        AND ubi_id = nod_ubicacion
+        AND nod_atencion_referenciada = ate_id
+    ) AS nodo
+    , (
+        SELECT ciu_nombre 
+        FROM 
+         sai_ciudad
+        WHERE 
+        ciu_borrado IS NULL
+        AND ciu_id = vae_ciudad
+    ) AS ciudad
+    , (
+		CASE WHEN ate_costo_proveedor IS NOT NULL THEN
+			(SELECT cop_nombre
+			FROM
+			 sai_costo_proveedor
+			WHERE
+			cop_borrado IS NULL
+			AND cop_id = ate_costo_proveedor
+			AND vae_costo_proveedor is not null)
+		ELSE 
+			(SELECT cop_nombre 
+        FROM 
+         sai_costo_proveedor
+        WHERE 
+        cop_borrado IS NULL
+        AND cop_id = vae_costo_proveedor
+			) 
+		END
+    ) AS costo_proveedor
+    , (
+		CASE WHEN ate_precio_cliente IS NOT NULL THEN
+			(SELECT prc_nombre
+			FROM
+			 sai_precio_cliente
+			WHERE
+			prc_borrado IS NULL
+			AND prc_id = ate_precio_cliente
+			AND vae_precio_cliente is not null)
+		ELSE 
+			(SELECT prc_nombre
+			FROM
+			 sai_precio_cliente
+			WHERE
+			prc_borrado IS NULL
+			AND prc_id = vae_precio_cliente
+			) 
+		END
+    ) AS precio_cliente, 
+	(
+        CASE WHEN ate_costo_proveedor IS NOT NULL THEN
+			(SELECT cop_id
+			FROM
+			 sai_costo_proveedor
+			WHERE
+			cop_borrado IS NULL
+			AND cop_id = ate_costo_proveedor
+			AND vae_costo_proveedor is not null)
+		ELSE 
+			(SELECT cop_id
+        FROM 
+         sai_costo_proveedor
+        WHERE 
+        cop_borrado IS NULL
+        AND cop_id = vae_costo_proveedor
+			) 
+		END
+    ) AS costo_proveedor_id
+    , (
+        CASE WHEN ate_precio_cliente IS NOT NULL THEN
+			(SELECT prc_id
+			FROM
+			 sai_precio_cliente
+			WHERE
+			prc_borrado IS NULL
+			AND prc_id = ate_precio_cliente
+			AND vae_precio_cliente is not null)
+		ELSE 
+			(SELECT prc_id
+			FROM
+			 sai_precio_cliente
+			WHERE
+			prc_borrado IS NULL
+			AND prc_id = vae_precio_cliente
+			) 
+		END
+    ) AS precio_cliente_id
+        FROM sai_paso_atencion
+        , sai_valor_extra
+        , sai_campo_extra
+		, sai_atencion
+        WHERE paa_borrado IS NULL
+        AND vae_borrado IS NULL
+        AND cae_borrado IS NULL
+        AND vae_paso_atencion = paa_id
+        AND vae_campo_extra = cae_id
+        AND NOT paa_confirmado IS NULL
+		AND ate_id=paa_atencion							 
+        AND paa_atencion = $ate_id
+        ORDER BY vae_creado
+	");
     $etiquetas = array();
     $result_etiquetas = q("SELECT cat_texto FROM sai_catalogo WHERE cat_codigo='cae_codigo_etiquetas'");
     if ($result_etiquetas) {
@@ -109,6 +282,8 @@ if (!empty($ate_id)) {
                 $ciudad = $r[ciudad];
                 $costo_proveedor = $r[costo_proveedor];
                 $precio_cliente = $r[precio_cliente];
+                $costo_proveedor_id = $r[costo_proveedor_id];
+                $precio_cliente_id = $r[precio_cliente_id];
                 $valor = $r[valor];
                 $valor_detallado = (empty($nodo) && empty($ciudad) && empty($costo_proveedor) && empty($precio_cliente)) ? $valor : $precio_cliente . $costo_proveedor . $nodo . $ciudad;
 
@@ -121,6 +296,8 @@ if (!empty($ate_id)) {
                     , 'ciudad' => $ciudad
 		    , 'costo_proveedor' => $costo_proveedor
 		    , 'precio_cliente' => $precio_cliente
+		    , 'costo_proveedor_id' => $costo_proveedor_id
+		    , 'precio_cliente_id' => $precio_cliente_id
 
                 );
             }

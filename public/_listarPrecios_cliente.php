@@ -3,6 +3,7 @@
 $respuestas = array();
 $error = array();
 $query = $args[0];
+$ate_id = $args[1];
 
 $extension_minima = 2;
 
@@ -30,6 +31,13 @@ if (strlen($query) >= $extension_minima) {
         FROM sai_precio_cliente
         LEFT OUTER JOIN sai_cliente
 	on prc_cliente=cli_id
+
+	LEFT OUTER JOIN sai_atencion
+        on prc_cliente=ate_cliente
+	
+	LEFT OUTER JOIN sai_servicio
+        on prc_servicio=ser_id
+
         WHERE prc_borrado IS NULL
         AND prc_borrado IS NULL
 		/*AND prc_cliente=cli_id*/
@@ -39,6 +47,10 @@ if (strlen($query) >= $extension_minima) {
             /*OR nod_codigo ILIKE '%$query%'
             OR nod_descripcion ILIKE '%$query%'*/
         )
+	AND (
+	ate_id=$ate_id OR
+	cli_id is null	
+	)
         ORDER BY 1
     ");
 
@@ -83,7 +95,8 @@ if (strlen($query) >= $extension_minima) {
     if ($result) {
         $names = array();
         foreach($result as $r){
-            $respuesta = array('id' => $r['prc_id'], 'name' => ($r['prc_nombre'] . ': ' . $r['cli_razon_social']));
+            //$respuesta = array('id' => $r['prc_id'], 'name' => ($r['prc_nombre'] . ': ' . $r['cli_razon_social']));
+            $respuesta = array('id' => $r['prc_id'], 'name' => ($r['prc_nombre']));
             if (!isset($names[$respuesta['name']])) {
                 $respuestas[] = $respuesta; 
                 $names[$respuesta['name']] = $respuesta['id'];
