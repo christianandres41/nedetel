@@ -1649,13 +1649,13 @@ $(document).ready(function() {
 		if (campo['costo_proveedor']) {
 		if (!(1== <?= ($_SESSION['rol']== '1' || $_SESSION['rol']== '3' || $_SESSION['rol']== '4' || $_SESSION['rol']== '9' )? '1': '0'; ?> ))
 			excluir=true; 
-                    var cop_id = campo['valor'];
+                    var cop_id = campo['costo_proveedor_id'];
                     valor_detallado = '<a href="#" onclick="p_abrir_detalle_costo_proveedor('+cop_id+');return false;">'+valor_detallado+'</a>';
                 }
 		if (campo['precio_cliente']) {
 		if (!(1== <?= ($_SESSION['rol']== '1' || $_SESSION['rol']== '3' || $_SESSION['rol']== '4' || $_SESSION['rol']== '9' )? '1': '0'; ?> ))
                         excluir=true;
-                    var prc_id = campo['valor'];
+                    var prc_id = campo['precio_cliente_id'];
                     valor_detallado = '<a href="#" onclick="p_abrir_detalle_precio_cliente('+prc_id+');return false;">'+valor_detallado+'</a>';
                 }
 		if(!(excluir))

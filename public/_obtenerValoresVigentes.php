@@ -108,7 +108,7 @@ if (!empty($ate_id)) {
 	        SELECT *
         ,concat(vae_texto, vae_numero, to_char(vae_fecha, 'YYYY-MM-DD'), vae_nodo, (
         CASE WHEN ate_precio_cliente IS NOT NULL THEN
-			(SELECT prc_id
+			(SELECT prc_precio_mb
 			FROM
 			 sai_precio_cliente
 			WHERE
@@ -126,7 +126,7 @@ if (!empty($ate_id)) {
 		END
     ), (
         CASE WHEN ate_costo_proveedor IS NOT NULL THEN
-			(SELECT cop_id
+			(SELECT cop_costo_mb
 			FROM
 			 sai_costo_proveedor
 			WHERE
