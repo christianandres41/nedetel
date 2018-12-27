@@ -97,8 +97,8 @@ if (!empty($ate_id)) {
             AND vae_paso_atencion = paa_id
 
         LEFT OUTER JOIN sai_campo_extra
-            ON cae_borrado IS NULL
-            AND cae_id = vae_campo_extra
+            ON /* cae_borrado IS NULL
+            AND*/ cae_id = vae_campo_extra
 
         WHERE paa_borrado IS NULL
         AND NOT paa_confirmado IS NULL

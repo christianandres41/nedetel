@@ -494,7 +494,7 @@ $('#<?=$c?>').select2({
         <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
         <button type="button" class="btn btn-danger" onclick="p_borrarSuave()" id="formulario_eliminar">Eliminar registro</button>
 <?php if(($tabla == 'sai_precio_cliente') or ($tabla == 'sai_costo_proveedor')): ?>
-		<button type="button" class="btn btn-info" onclick="p_abrir_historico_precio_desde_detalle()" id="formulario_historial">Ver Historial</button>
+		<button type="button" class="btn btn-info" onclick="" id="formulario_historial">Ver Historial</button>
 		<?php endif; ?>
         <button type="button" class="btn btn-success" onclick="p_guardar()" id="formulario_guardar">Guardar cambios</button>
         <button type="button" class="btn btn-success" onclick="p_recuperar()" id="formulario_recuperar">Recuperar registro</button>
@@ -502,26 +502,6 @@ $('#<?=$c?>').select2({
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
-
-<div id="modal_historial" class="modal fade" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-nuevo-title">Historial de <?=isset($titulo_proceso_singular)?$titulo_proceso_singular:'cambios'?> <span id="historial_titulo"></span></h4>
-      </div>
-      <div class="modal-body">
-        <div class="form-horizontal" id="contenido_historial">
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
 <script src="/js/Blob.min.js"></script>
 <script src="/js/xlsx.full.min.js"></script>
 <script src="/js/FileSaver.min.js"></script>
@@ -553,7 +533,7 @@ $(document).ready(function() {
         format: 'YYYY-MM-DD'
     });
     $('.multiemail').multiple_emails({position: "bottom"});
-    //refresh_emails
+    /refresh_emails
 
     $('#tabla').DataTable({ language: {
         "sProcessing":     "Procesando...",
@@ -580,99 +560,6 @@ $(document).ready(function() {
     }
     }});
 });
-
-function p_abrir_historico_precio_desde_detalle(){
-    $('#modal').modal('hide');
-    $('#modal').on('hidden.bs.modal', function () {
-
-        $('#modal').off('hidden.bs.modal');
-        $('#modal_historial').on('hidden.bs.modal', function () {
-            $('#modal').modal('show');
-            $('#modal_historial').off('hidden.bs.modal');
-        });
-	//alert($('#id').attr('value'));
-        p_toggle_historico_precio($('#id').attr('value'),$('#nombre').attr('value'));
-    });
-}
-function p_toggle_historico_precio(prc_id, prc_nombre){
-    $('#tabla_historico_' + prc_id).toggle();
-    $.get('/_obtenerValoresHistoricosPrecios/' + prc_id, function(data){
-        console.log('/_obtenerValoresHistoricosPrecios/' + prc_id, data);
-        data = JSON.parse(data);
-        console.log('data', data);
-        if (data && data.length > 0) {
-            var contenido = '';
-            contenido += '' +
-                '<table id="tabla_dinamica_historial" class="table">' +
-                '<thead><tr>'+
-                '<th>Fecha</th>'+
-                '<th>Usuario</th>'+
-                '<th>Fecha vigencia</th>'+
-                '<th>Cliente</th>'+
-                //'<th>Proveedor</th>'+
-                '<th>Servicio</th>'+
-                '<th>Campo</th>'+
-                '<th>Valor</th>'+
-                '<th>Detalle</th>'+
-                '</tr></thead>'+
-                '<tbody>'+
-                '';
-            data.forEach(function(d){
-                    dato = d['valor'];
-                contenido += '' +
-                    '<tr>'+
-                    '<td style="text-align:center;">'+d['loc_creado']+'</td>'+
-                    '<td style="text-align:center;">'+d['usu_username']+'</td>'+
-                    '<td style="text-align:center;">'+d['fecha_vigencia']+'</td>'+
-                    '<td style="text-align:center;">'+d['cli_razon_social']+'</td>'+
-                   // '<td style="text-align:center;">'+d['pro_nombre_comercial']+'</td>'+
-                    '<td style="text-align:center;">'+d['ser_nombre']+'</td>'+
-                    '<td style="text-align:center;">'+d['loc_campo1']+'</td>'+
-                    '<td style="text-align:center;">'+dato+'</td>'+
-                    '<td style="text-align:center;">'+d['detalle']+'</td>'+
-                    '</tr>'+
-                    '';
-                console.log(d['loc_creado']);
-            });
-            contenido += '' +
-                '</tbody>' +
-                '</table>' +
-                '';
-
-            $('#contenido_historial').html(contenido);
-            $('#historial_titulo').text(prc_nombre);
-
-            $('#tabla_dinamica_historial').DataTable({ 
-                language: {
-                    "sProcessing":     "Procesando...",
-                    "sLengthMenu":     "Mostrar _MENU_ registros",
-                    "sZeroRecords":    "No se encontraron resultados",
-                    "sEmptyTable":     "Ningún dato disponible en esta tabla",
-                    "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                    "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
-                    "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
-                    "sInfoPostFix":    "",
-                    "sSearch":         "Buscar:",
-                    "sUrl":            "",
-                    "sInfoThousands":  ",",
-                    "sLoadingRecords": "Cargando...",
-                    "oPaginate": {
-                        "sFirst":    "Primero",
-                        "sLast":     "Último",
-                        "sNext":     "Siguiente",
-                        "sPrevious": "Anterior"
-                    },
-                    "oAria": {
-                        "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
-                        "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                    },
-                },
-                "order": [[ 0, "desc" ]]
-            });
-            $('#modal_historial').modal('show');
-        }
-    });
-}
 
 function p_cambiar_checkbox(target) {
     var id = $(target).attr('id').replace('_checkbox', '');
@@ -1136,4 +1023,104 @@ function p_nuevo(){
 
     $('#modal').modal('show');
 }
+
+/*
+function p_abrir_historico_precio_desde_detalle(){
+    $('#modal').modal('hide');
+    $('#modal').on('hidden.bs.modal', function () {
+
+        $('#modal').off('hidden.bs.modal');
+        $('#modal_historial').on('hidden.bs.modal', function () {
+            $('#modal').modal('show');
+            $('#modal_historial').off('hidden.bs.modal');
+        });
+        p_toggle_historico_precio(6,'TEST');
+	alert('TEST');
+        //p_toggle_historico_precio($('#id').value,$('#nombre').value);
+    });
+}
+function p_toggle_historico_precio(prc_id, prc_nombre){
+    $('#tabla_historico_' + prc_id).toggle();
+    $.get('/_obtenerValoresHistoricosPrecios/' + prc_id, function(data){
+        console.log('/_obtenerValoresHistoricosPrecios/' + prc_id, data);
+        data = JSON.parse(data);
+        console.log('data', data);
+        if (data && data.length > 0) {
+            var contenido = '';
+            contenido += '' +
+                '<table id="tabla_dinamica_historial" class="table">' +
+                '<thead><tr>'+
+                '<th>Fecha</th>'+
+                '<th>Usuario</th>'+
+                '<th>Estado</th>'+
+                '<th>Destinatario</th>'+
+                '<th>Campo</th>'+
+                '<th>Valor</th>'+
+                '</tr></thead>'+
+                '<tbody>'+
+                '';
+            data.forEach(function(d){
+                var label = [d['cae_texto']].join('');
+                var dato = '';
+                if (d['nodo']) {
+                    var nod_id = d['vae_nodo'];
+                    dato += ''+
+                        '<a href="#" onclick="p_abrir_detalle_nodo_desde_historial('+prc_id+','+prc_id+');return false;">'+d['nodo']+'</a>'+
+                        '';
+                } else {
+                    dato = [d['valor'], d['ciudad']].join('') ;
+                }
+                contenido += '' +
+                    '<tr>'+
+                    '<td style="text-align:center;">'+d['fecha']+'</td>'+
+                    '<td style="text-align:center;">'+d['usuario']+'</td>'+
+                    '<td style="text-align:center;">'+d['esa_nombre']+'</td>'+
+                    '<td style="text-align:center;">'+d['des_nombre']+'</td>'+
+                    '<td style="text-align:center;">'+label+'</td>'+
+                    '<td style="text-align:center;">'+dato+'</td>'+
+                    '</tr>'+
+                    '';
+                console.log(d['vae_creado']);
+            });
+            contenido += '' +
+                '</tbody>' +
+                '</table>' +
+                '';
+
+            $('#contenido_historial').html(contenido);
+            $('#historial_titulo').text(prc_nombre);
+
+            $('#tabla_dinamica_historial').DataTable({ 
+                language: {
+                    "sProcessing":     "Procesando...",
+                    "sLengthMenu":     "Mostrar _MENU_ registros",
+                    "sZeroRecords":    "No se encontraron resultados",
+                    "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                    "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                    "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+                    "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                    "sInfoPostFix":    "",
+                    "sSearch":         "Buscar:",
+                    "sUrl":            "",
+                    "sInfoThousands":  ",",
+                    "sLoadingRecords": "Cargando...",
+                    "oPaginate": {
+                        "sFirst":    "Primero",
+                        "sLast":     "Último",
+                        "sNext":     "Siguiente",
+                        "sPrevious": "Anterior"
+                    },
+                    "oAria": {
+                        "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+                        "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                    },
+                },
+                "order": [[ 0, "desc" ]]
+            });
+            $('#modal_historial').modal('show');
+        }
+    });
+}
+*/
+
 </script>

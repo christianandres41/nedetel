@@ -114,10 +114,9 @@ if (!empty($ate_id)) {
 			WHERE
 			prc_borrado IS NULL
 			AND prc_id = ate_precio_cliente
-			AND cae_codigo='PRECIO_CLIENTE'
-			)
+			AND vae_precio_cliente is not null)
 		ELSE 
-			(SELECT prc_precio_mb
+			(SELECT prc_id
 			FROM
 			 sai_precio_cliente
 			WHERE
@@ -135,7 +134,7 @@ if (!empty($ate_id)) {
 			AND cop_id = ate_costo_proveedor
 			AND vae_costo_proveedor is not null)
 		ELSE 
-			(SELECT cop_costo_mb
+			(SELECT cop_id
         FROM 
          sai_costo_proveedor
         WHERE 
@@ -199,8 +198,7 @@ if (!empty($ate_id)) {
 			WHERE
 			prc_borrado IS NULL
 			AND prc_id = ate_precio_cliente
-			AND cae_codigo='PRECIO_CLIENTE'
-			)
+			AND vae_precio_cliente is not null)
 		ELSE 
 			(SELECT prc_nombre
 			FROM
@@ -238,8 +236,7 @@ if (!empty($ate_id)) {
 			WHERE
 			prc_borrado IS NULL
 			AND prc_id = ate_precio_cliente
-			AND cae_codigo='PRECIO_CLIENTE'
-			)
+			AND vae_precio_cliente is not null)
 		ELSE 
 			(SELECT prc_id
 			FROM
