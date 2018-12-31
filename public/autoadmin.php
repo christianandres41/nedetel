@@ -493,9 +493,12 @@ $('#<?=$c?>').select2({
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
         <button type="button" class="btn btn-danger" onclick="p_borrarSuave()" id="formulario_eliminar">Eliminar registro</button>
-<?php if(($tabla == 'sai_precio_cliente') or ($tabla == 'sai_costo_proveedor')): ?>
-		<button type="button" class="btn btn-info" onclick="p_abrir_historico_precio_desde_detalle()" id="formulario_historial">Ver Historial</button>
+<?php if(($tabla == 'sai_precio_cliente') ): ?>
+		<button type="button" class="btn btn-info" onclick="p_abrir_historico_precio_desde_detalle()" id="formulario_historial_precio">Ver Historial</button>
 		<?php endif; ?>
+<?php if( ($tabla == 'sai_costo_proveedor')): ?>
+                <button type="button" class="btn btn-info" onclick="p_abrir_historico_costo_desde_detalle()" id="formulario_historial_costo">Ver Historial</button>
+                <?php endif; ?>
         <button type="button" class="btn btn-success" onclick="p_guardar()" id="formulario_guardar">Guardar cambios</button>
         <button type="button" class="btn btn-success" onclick="p_recuperar()" id="formulario_recuperar">Recuperar registro</button>
       </div>
@@ -594,6 +597,22 @@ function p_abrir_historico_precio_desde_detalle(){
         p_toggle_historico_precio($('#id').attr('value'),$('#nombre').attr('value'));
     });
 }
+
+function p_abrir_historico_costo_desde_detalle(){
+    $('#modal').modal('hide');
+    $('#modal').on('hidden.bs.modal', function () {
+
+        $('#modal').off('hidden.bs.modal');
+        $('#modal_historial').on('hidden.bs.modal', function () {
+            $('#modal').modal('show');
+            $('#modal_historial').off('hidden.bs.modal');
+        });
+        //alert($('#id').attr('value'));
+        p_toggle_historico_costo($('#id').attr('value'),$('#nombre').attr('value'));
+    });
+}
+
+
 function p_toggle_historico_precio(prc_id, prc_nombre){
     $('#tabla_historico_' + prc_id).toggle();
     $.get('/_obtenerValoresHistoricosPrecios/' + prc_id, function(data){
@@ -641,6 +660,86 @@ function p_toggle_historico_precio(prc_id, prc_nombre){
 
             $('#contenido_historial').html(contenido);
             $('#historial_titulo').text(prc_nombre);
+
+            $('#tabla_dinamica_historial').DataTable({ 
+                language: {
+                    "sProcessing":     "Procesando...",
+                    "sLengthMenu":     "Mostrar _MENU_ registros",
+                    "sZeroRecords":    "No se encontraron resultados",
+                    "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                    "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                    "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+                    "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                    "sInfoPostFix":    "",
+                    "sSearch":         "Buscar:",
+                    "sUrl":            "",
+                    "sInfoThousands":  ",",
+                    "sLoadingRecords": "Cargando...",
+                    "oPaginate": {
+                        "sFirst":    "Primero",
+                        "sLast":     "Último",
+                        "sNext":     "Siguiente",
+                        "sPrevious": "Anterior"
+                    },
+                    "oAria": {
+                        "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+                        "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                    },
+                },
+                "order": [[ 0, "desc" ]]
+            });
+            $('#modal_historial').modal('show');
+        }
+    });
+}
+
+function p_toggle_historico_costo(cop_id, cop_nombre){
+    $('#tabla_historico_' + cop_id).toggle();
+    $.get('/_obtenerValoresHistoricosCostos/' + cop_id, function(data){
+        console.log('/_obtenerValoresHistoricosCostos/' + cop_id, data);
+        data = JSON.parse(data);
+        console.log('data', data);
+        if (data && data.length > 0) {
+            var contenido = '';
+            contenido += '' +
+                '<table id="tabla_dinamica_historial" class="table">' +
+                '<thead><tr>'+
+                '<th>Fecha</th>'+
+                '<th>Usuario</th>'+
+                '<th>Fecha vigencia</th>'+
+                //'<th>Cliente</th>'+
+                '<th>Pertinencia Proveedor</th>'+
+                //'<th>Servicio</th>'+
+                '<th>Campo</th>'+
+                '<th>Valor</th>'+
+                '<th>Detalle</th>'+
+                '</tr></thead>'+
+                '<tbody>'+
+                '';
+            data.forEach(function(d){
+                    dato = d['valor'];
+                contenido += '' +
+                    '<tr>'+
+                    '<td style="text-align:center;">'+d['loc_creado']+'</td>'+
+                    '<td style="text-align:center;">'+d['usu_username']+'</td>'+
+                    '<td style="text-align:center;">'+d['fecha_vigencia']+'</td>'+
+                    //'<td style="text-align:center;">'+d['cli_razon_social']+'</td>'+
+                    '<td style="text-align:center;">'+d['pep_nombre']+'</td>'+
+                    //'<td style="text-align:center;">'+d['ser_nombre']+'</td>'+
+                    '<td style="text-align:center;">'+d['loc_campo1']+'</td>'+
+                    '<td style="text-align:center;">'+dato+'</td>'+
+                    '<td style="text-align:center;">'+d['detalle']+'</td>'+
+                    '</tr>'+
+                    '';
+                console.log(d['loc_creado']);
+            });
+            contenido += '' +
+                '</tbody>' +
+                '</table>' +
+                '';
+
+            $('#contenido_historial').html(contenido);
+            $('#historial_titulo').text(cop_nombre);
 
             $('#tabla_dinamica_historial').DataTable({ 
                 language: {
@@ -793,6 +892,9 @@ function p_abrir(id, target){
             $('#formulario_guardar').prop('disabled', true);
             $('#formulario_recuperar').show();
         }
+		$('#formulario_historial_precio').show();
+		$('#formulario_historial_costo').show();
+
         //$('#formulario_titulo').html(data['id'] );
         $('#formulario_titulo').html(etiqueta );
         for (key in data){
@@ -1098,6 +1200,8 @@ function p_nuevo(){
     $("#id").prop('disabled', true);
     $('#formulario_eliminar').hide();
     $('#formulario_recuperar').hide();
+    $('#formulario_historial_precio').hide();
+    $('#formulario_historial_costo').hide();
     $('#formulario_guardar').show();
     $('#formulario_guardar').prop('disabled', false);
     $('#formulario').find(':input').each(function() {
