@@ -25,20 +25,13 @@ if (!empty($prc_id)) {
     $result = q("
 	        SELECT loc_creado,usu_username,loc_campo1,ser_nombre,pro_nombre_comercial,cli_razon_social,loc_campo5 valor,date(loc_campo6) fecha_vigencia,loc_campo7 detalle
          FROM 
-             sai_proveedor
-            , sai_cliente
-            , sai_log_cambios
-			, sai_servicio
-		, sai_usuario
+             sai_log_cambios
+             LEFT JOIN sai_proveedor ON pro_borrado IS NULL AND loc_campo3 = pro_id
+             LEFT JOIN sai_cliente ON  cli_borrado IS NULL AND loc_campo4 = cli_id
+	     LEFT JOIN sai_servicio ON ser_borrado IS NULL AND loc_campo2 = ser_id
+	     LEFT JOIN sai_usuario ON loc_creado_por=usu_id
             WHERE 
                 loc_borrado IS NULL
-                AND pro_borrado IS NULL
-                AND cli_borrado IS NULL
-                AND ser_borrado IS NULL
-                AND loc_campo2 = ser_id
-				AND loc_campo3 = pro_id
-				AND loc_campo4 = cli_id
-				AND loc_creado_por=usu_id
                 AND loc_campo8 = {$prc_id}
         ORDER BY loc_creado ASC    
 ");
