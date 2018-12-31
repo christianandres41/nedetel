@@ -31,6 +31,7 @@ if (!empty($cop_id)) {
             WHERE 
                 loc_borrado IS NULL
                 AND loc_campo8 = {$cop_id}
+		AND loc_campo2 = 0
         ORDER BY loc_creado ASC    
 ");
 

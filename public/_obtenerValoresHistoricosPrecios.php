@@ -33,6 +33,7 @@ if (!empty($prc_id)) {
             WHERE 
                 loc_borrado IS NULL
                 AND loc_campo8 = {$prc_id}
+		AND loc_campo2 <> 0
         ORDER BY loc_creado ASC    
 ");
 
