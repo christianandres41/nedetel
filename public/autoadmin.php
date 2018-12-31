@@ -627,7 +627,7 @@ function p_toggle_historico_precio(prc_id, prc_nombre){
                 '<th>Fecha</th>'+
                 '<th>Usuario</th>'+
                 '<th>Fecha vigencia</th>'+
-                '<th>Cliente</th>'+
+                //'<th>Cliente</th>'+
                 //'<th>Proveedor</th>'+
                 '<th>Servicio</th>'+
                 '<th>Campo</th>'+
@@ -643,7 +643,7 @@ function p_toggle_historico_precio(prc_id, prc_nombre){
                     '<td style="text-align:center;">'+d['loc_creado']+'</td>'+
                     '<td style="text-align:center;">'+d['usu_username']+'</td>'+
                     '<td style="text-align:center;">'+d['fecha_vigencia']+'</td>'+
-                    '<td style="text-align:center;">'+d['cli_razon_social']+'</td>'+
+                    //'<td style="text-align:center;">'+d['cli_razon_social']+'</td>'+
                    // '<td style="text-align:center;">'+d['pro_nombre_comercial']+'</td>'+
                     '<td style="text-align:center;">'+d['ser_nombre']+'</td>'+
                     '<td style="text-align:center;">'+d['loc_campo1']+'</td>'+
