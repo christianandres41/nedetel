@@ -25,14 +25,11 @@ if (!empty($cop_id)) {
     $result = q("
 	        SELECT loc_creado,usu_username,loc_campo1,pep_nombre,loc_campo5 valor,date(loc_campo6) fecha_vigencia,loc_campo7 detalle
          FROM 
-             sai_pertinencia_proveedor
-            , sai_log_cambios
-		, sai_usuario
+                sai_log_cambios
+		LEFT JOIN sai_pertinencia_proveedor on  pep_borrado IS NULL AND pep_id=loc_campo3
+		LEFT JOIN sai_usuario ON usu_id=loc_creado_por
             WHERE 
                 loc_borrado IS NULL
-                AND pep_borrado IS NULL
-				AND loc_campo3 = pep_id
-				AND loc_creado_por=usu_id
                 AND loc_campo8 = {$cop_id}
         ORDER BY loc_creado ASC    
 ");
