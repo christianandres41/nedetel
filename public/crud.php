@@ -7,7 +7,7 @@ if (empty($tabla)) {
     //despliega todas las tablas
     $result = q("SELECT *
         FROM information_schema.columns
-        WHERE table_schema = 'public'
+        WHERE table_schema = 'public' AND table_name not like '%tablero%'
         ORDER BY table_name, data_type, is_nullable, column_name
         ");
     $table_name = null;
@@ -212,6 +212,8 @@ function p_borrar(){
             //data = eval(data);
             data = JSON.parse(data);
             data = data[0];
+			if(data["R"])
+				alert(data["R"]);
 
             $('#fila_' + data['id']).remove();
             $('#modal').modal('hide');

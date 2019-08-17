@@ -306,6 +306,9 @@ foreach ($_POST as $k => $v){
 				case 'precio_cliente':
                     		$vae_precio_cliente = p_formatear_valor_sql($v, 'precio_cliente');
 		                    break;
+				case 'tipo_conexion_iru': 
+                    $vae_texto = p_formatear_valor_sql($v, 'text');
+                    break;			
                 }
             }
         }

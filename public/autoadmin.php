@@ -18,13 +18,14 @@ function array2ul($array) {
 }
 
 $tabla = (isset($args[0]) ? $args[0] : null);
-$accion = (isset($args[1]) ? $args[1] : '');
+#$accion = (isset($args[1]) ? $args[1] : '');
+$codigo = (isset($args[1]) ? "WHERE vae_campo_extra in (select cae_id from sai_campo_extra where cae_codigo='".$args[1]."') " : "" );
 
 if (empty($tabla)) {
     //despliega todas las tablas
     $result = q("SELECT *
         FROM information_schema.columns
-        WHERE table_schema = 'public'
+        WHERE table_schema = 'public' AND table_name not like '%tablero%'
         ORDER BY table_name, data_type, is_nullable, column_name
         ");
     $table_name = null;
@@ -285,7 +286,8 @@ FROM
     echo "<h1>$nombre_tabla</h1>";
 
 
-    $result = q("SELECT * FROM $tabla ORDER BY {$prefijo}borrado DESC, {$prefijo}id DESC");
+    ##$result = q("SELECT * FROM $tabla ORDER BY {$prefijo}borrado DESC, {$prefijo}id DESC limit 10000");
+    $result = q("SELECT * FROM $tabla $codigo  ORDER BY {$prefijo}borrado DESC, {$prefijo}id DESC limit 10000");
 
 
     //echo '<a href="#" download><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Descargar XML </a>';

@@ -98,6 +98,16 @@ body {
 
           </ul>
         </li>
+	
+	<li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Facturacion<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="/proceso_facturacion">Division de fatura</a></li>
+            <!--li><a href="/proceso_anulacion">Anulaciones</a></li-->
+	     <li><a href="/ordenes_pedido">Ordenes de pedido</a></li>
+
+          </ul>
+        </li>
         <!--
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Factibilidades<span class="caret"></span></a>
@@ -163,6 +173,7 @@ body {
             <li><a href="/ubicaciones">Puntos</a></li>
             <li><a href="/puntos">Puntos por atención</a></li>
             <li><a href="/autoadmin/sai_tipo_ultima_milla">Tipos de última milla</a></li>
+			<li><a href="/autoadmin/sai_tipo_conexion_iru">Tipos de conexión IRU</a></li>
             <?php if ($_nivel <= 1): ?>
             <li role="separator" class="divider"></li>
             <li><a href="/autoadmin/sai_estado_atencion">Estados</a></li>

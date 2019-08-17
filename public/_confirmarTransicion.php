@@ -92,9 +92,28 @@ if (!empty($_POST) && isset($_POST['ate_id']) && !empty($_POST['ate_id']) && iss
                     $mail->CharSet = 'UTF-8';
                     $mail->IsSMTP();
                     $mail->SMTPSecure = 'tls';
+                    //$mail->SMTPSecure = false;
                     $mail->SMTPAuth = true;
 
+
+/*		$mail->SMTPOptions = array(
+                          'ssl' => array(
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => true
+    )
+);
+*/
+
                     if ($es_zenix) {
+			/*$mail->SMTPSecure = false;
+			$mail->SMTPOptions = array(
+                          'ssl' => array(
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => true
+    )
+);*/
                         $mail->Host = SMTP_SERVER_ZENIX;
                         $mail->Port = SMTP_PORT_ZENIX;
                         $mail->Username = SMTP_USERNAME_ZENIX;

@@ -1,6 +1,6 @@
 <div class="page-header"><h1>Dependencia de Empresas</h1></div>
 <?php
-
+//
 $result = q("
 SELECT *
     ,concat(
@@ -116,12 +116,12 @@ p_tree($cuentas[null][hijos]);
       <input type="text" required class="form-control" id="codigo" name="codigo" placeholder="Codigo">
     </div>
   </div-->
-  <div class="form-group">
+  <!--div class="form-group">
     <label for="peso" class="col-sm-4 control-label">Peso:</label>
     <div class="col-sm-8">
       <input type="number" required class="form-control" id="peso" name="peso" placeholder="Peso">
     </div>
-  </div>
+  </div-->
   <div class="form-group">
     <label for="cliente" class="col-sm-4 control-label">Empresa:</label>
     <div class="col-sm-8">
@@ -456,11 +456,11 @@ function p_abrir(id){
         }
          */
         $('#id').val(data['cue_id']);
-            if (data['cue_peso']) {
+            /*if (data['cue_peso']) {
                 $('#peso').val(data['cue_peso']);
             } else {
                 $('#peso').val('');
-            }
+            }*/
 
             if (data['cue_cliente']) {
                 $('#cliente').select2("trigger", "select", {

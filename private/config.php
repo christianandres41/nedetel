@@ -5,7 +5,8 @@ date_default_timezone_set('America/Guayaquil');
 define('SMTP_SERVER_ZENIX', 'mail.zenix.com.ec');
 define('SMTP_PORT_ZENIX', 587);
 define('SMTP_USERNAME_ZENIX', 'sait@zenix.com.ec');
-define('SMTP_PASSWORD_ZENIX', 'n3D1$207*');
+#define('SMTP_PASSWORD_ZENIX', 'n3D1$207*');
+define('SMTP_PASSWORD_ZENIX', 'Tfo37DBzvJBsR6jn9moG!');
 define('MAIL_ORDERS_ADDRESS_ZENIX', 'sait@zenix.com.ec');
 
 define('SMTP_SERVER', 'mail.nedetel.net');

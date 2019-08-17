@@ -75,7 +75,30 @@ if (isset($args) && !empty($args) && isset($args[0]) && !empty($args[0])) {
 
 //echo "[$sql]";
 //var_dump($campos);
+		
+		$es_zenix = false;
+		$filtro_proveedor= "AND pep_nombre not like '%CNT%'";
+            $result_proveedor = q("
+                SELECT * 
+                FROM sai_proveedor
+                ,sai_atencion
+                ,sai_pertinencia_proveedor
+                WHERE pro_borrado IS NULL
+                AND ate_borrado IS NULL
+                AND pep_borrado IS NULL
+                AND ate_pertinencia_proveedor = pep_id
+                AND pep_proveedor = pro_id
+                AND ate_id = $ate_id
+            ");
+            if ($result_proveedor) {
+                $r = $result_proveedor[0];
+                if ($r['pro_ruc'] === '1768152560001' || $r['pro_razon_social'] === 'CNT' || $r['pro_nombre_comercial'] === 'CNT') {
 
+                    $es_zenix = true;
+					$filtro_proveedor= "AND pep_nombre like '%CNT%'";
+                }
+            }
+		
         $result_contenido = q("
             SELECT * 
             ,(
@@ -93,7 +116,26 @@ if (isset($args) && !empty($args) && isset($args[0]) && !empty($args[0])) {
                 des_nombre 
                 FROM sai_destinatario 
                 WHERE des_id = tea_destinatario
-            ) AS destinatario
+            ) AS destinatario,
+			(
+				SELECT count(*) servicios_activos
+				FROM sai_atencion
+					,sai_cliente
+					,sai_paso_atencion
+					,sai_transicion_estado_atencion
+					,sai_estado_atencion
+					,sai_pertinencia_proveedor
+					,( select ate_cliente id from sai_atencion where ate_id = $ate_id) c
+				WHERE paa_atencion =ate_id
+				AND ate_cliente=cli_id
+				AND tea_id = paa_transicion_estado_atencion
+				AND esa_id = tea_estado_atencion_actual
+				AND tea_estado_atencion_actual = 26	
+				AND cli_id=c.id
+				AND ate_pertinencia_proveedor = pep_id  
+				$filtro_proveedor
+				
+			) AS servicios_activos
             FROM sai_transicion_estado_atencion 
             ,sai_plantilla
             WHERE tea_borrado IS NULL
@@ -283,7 +325,19 @@ if (isset($args) && !empty($args) && isset($args[0]) && !empty($args[0])) {
                 ,(usu_tecnico.usu_nombres || ' ' || usu_tecnico.usu_apellidos) AS usuario_tecnico
                 ,(usu_tecnico.usu_correo_electronico) AS usuario_tecnico_correo_electronico
                 ,(usu_comercial.usu_nombres || ' ' || usu_comercial.usu_apellidos) AS usuario_comercial
-                ,(usu_comercial.usu_correo_electronico) AS usuario_comercial_correo_electronico
+                ,(usu_comercial.usu_correo_electronico) AS usuario_comercial_correo_electronico,
+				(SELECT prv_nombre
+				  FROM sai_provincia
+				 where prv_borrado IS NULL
+				   AND prv_id = cli_provincia) as prv_nombre,
+			   (SELECT can_nombre
+				  FROM sai_canton
+				 where can_borrado IS NULL
+				   AND can_id = cli_canton) as can_nombre,
+			   (SELECT par_nombre
+				  FROM sai_parroquia
+				 WHERE par_borrado IS NULL
+				   AND par_id = cli_representante_legal_parroquia) as par_nombre
                 FROM sai_atencion
                 
                 LEFT OUTER JOIN sai_cliente
@@ -518,12 +572,17 @@ if (isset($args) && !empty($args) && isset($args[0]) && !empty($args[0])) {
                     $nombre = $campos_valores['CLI_REPRESENTANTE_LEGAL_NOMBRE'];
                     $cedula = $campos_valores['CLI_REPRESENTANTE_LEGAL_CEDULA']; 
                     $email = $campos_valores['CLI_REPRESENTANTE_LEGAL_EMAIL'];
+					$cargo = $campos_valores['CLI_REPRESENTANTE_LEGAL_CARGO'];
                     $domiciliado = $campos_valores['CLI_REPRESENTANTE_LEGAL_DOMICILIADO'];
-                    $canton = $campos_valores['CLI_REPRESENTANTE_LEGAL_CANTON'];
-                    $provincia = $campos_valores['CLI_REPRESENTANTE_LEGAL_PROVINCIA'];
+                    $canton = $campos_valores['CAN_NOMBRE'];
+                    $provincia = $campos_valores['PRV_NOMBRE'];
                     $campos_valores['CLIENTE_CONTRATO'] = <<<EOT
-$razon_social, representada por $nombre, con número de cédula/RUC $cedula, con email $email, domiciliado en $domiciliado cantón $canton, provincia $provincia
+$razon_social, representada por $nombre, en su calidad de $cargo, con número de cédula/RUC $cedula, con email $email, domiciliado en $domiciliado cantón $canton, provincia $provincia
 EOT;
+					$campos_valores['CLIENTE_EMPRESA'] = $razon_social;
+					//$campos_valores['CLIENTE_CARGO'] = "CARGO: ".$cargo;
+					//$campos_valores['CLIENTE_RUC'] = "RUC: ".$cedula;
+					$campos_valores['CLIENTE_NOMBRE'] = $nombre;
                     $campos_valores['CLI_PERSONA_JURIDICA_REPRESENTANTE_LEGAL_NOMBRE'] = $campos_valores['CLI_REPRESENTANTE_LEGAL_NOMBRE'];
                     $campos_valores['CLI_PERSONA_JURIDICA_REPRESENTANTE_LEGAL_CARGO'] = $campos_valores['CLI_REPRESENTANTE_LEGAL_CARGO'];
                 } else {
@@ -533,13 +592,18 @@ EOT;
                     $cedula = $campos_valores['CLI_RUC'];
                     $email = $campos_valores['CLI_REPRESENTANTE_LEGAL_EMAIL'];
                     $domiciliado = $campos_valores['CLI_REPRESENTANTE_LEGAL_DOMICILIADO'];
-                    $canton = $campos_valores['CLI_REPRESENTANTE_LEGAL_CANTON'];
-                    $provincia = $campos_valores['CLI_REPRESENTANTE_LEGAL_PROVINCIA'];
+                    $canton = $campos_valores['CAN_NOMBRE'];
+                    $provincia = $campos_valores['PRV_NOMBRE'];
                     $campos_valores['CLIENTE_CONTRATO'] = <<<EOT
 $razon_social, con número de cédula/RUC $cedula, con email $email, domiciliado en $domiciliado cantón $canton, provincia $provincia
 EOT;
 
-
+					$campos_valores['CLIENTE_EMPRESA'] = " ";
+					//$campos_valores['CLIENTE_CARGO'] = "";
+					//$campos_valores['CLIENTE_RUC'] = "RUC: ".$cedula;
+					$campos_valores['CLIENTE_NOMBRE'] = <<<EOT
+$razon_social
+EOT;
                     //para orden de servicio CNT, Autorizacion Central de Riesgo y Costo de Implementacion:
                     if (empty($campos_valores['CLI_REPRESENTANTE_LEGAL_CEDULA'])) {
                         $campos_valores['CLI_REPRESENTANTE_LEGAL_CEDULA'] = $campos_valores['CLI_RUC'];
@@ -704,8 +768,8 @@ EOT;
                 $campos_valores['PRECIO_CAPACIDAD_FACTURADA']  = $campos_valores['CAPACIDAD_FACTURADA']  * $campos_valores['PRECIO_CLIENTE'];
                 $campos_valores['PRECIO_CAPACIDAD_SOLICITADA'] = $campos_valores['CAPACIDAD_SOLICITADA'] * $campos_valores['PRECIO_CLIENTE'];
 
-                $campos_valores['PRECIO_CAPACIDAD'] = $campos_valores['PRECIO_CAPACIDAD_CONTRATADA'];
-                $campos_valores['PRECIO_MENSUAL'] = $campos_valores['PRECIO_CAPACIDAD'];
+                $campos_valores['PRECIO_CAPACIDAD'] = $campos_valores['PRECIO_CAPACIDAD_FACTURADA'];
+                //$campos_valores['PRECIO_MENSUAL'] = $campos_valores['PRECIO_CAPACIDAD'];
                 $campos_valores['PRECIO_BW'] = $campos_valores['PRECIO_CAPACIDAD'];
                 $campos_valores['PRECIO_BW_SOLICITADA'] = $campos_valores['PRECIO_CAPACIDAD_SOLICITADA'];
                 $campos_valores['PRECIO_ACTUAL'] = $campos_valores['PRECIO_CAPACIDAD'];
@@ -736,7 +800,8 @@ EOT;
 
                 $campos_valores['IVA_MENSUAL'] = round($campos_valores['PRECIO_CAPACIDAD'] * $iva, 2);
                 $campos_valores['TOTAL_MENSUAL'] = $campos_valores['PRECIO_CAPACIDAD'] + $campos_valores['IVA_MENSUAL'];
-
+				$campos_valores['PRECIO_MENSUAL'] = $campos_valores['TOTAL_MENSUAL'];
+				
                 $campos_valores['IVA_MENSUAL_SOLICITADO'] = round($campos_valores['PRECIO_CAPACIDAD_SOLICITADA'] * $iva, 2);
                 $campos_valores['TOTAL_MENSUAL_SOLICITADO'] = $campos_valores['PRECIO_CAPACIDAD_SOLICITADA'] + $campos_valores['IVA_MENSUAL_SOLICITADO'];
 
@@ -899,6 +964,7 @@ EOT;
                                 $ext = strtolower(pathinfo($adjunto_plantilla['arc_nombre'], PATHINFO_EXTENSION));
                                 $ruta_plantilla = 'uploads/' . $adjunto_plantilla['arc_nombre'];
                                 if (file_exists($ruta_plantilla)) {
+									
                                     if ($ext == 'xls' || $ext == 'xlsx' || $ext == 'ods') {
                                         //////////////
                                         //Excel
@@ -986,7 +1052,11 @@ EOT;
                                             l('no se pudo copiar el archivo ' . $ruta_plantilla);
                                         }
                                     }
+									if($rc['servicios_activos']==0 or (strpos($adjunto_plantilla['arc_nombre'],'NIVEL')===FALSE && strpos($adjunto_plantilla['arc_nombre'],'CONTRATO')===FALSE && strpos($adjunto_plantilla['arc_nombre'],'Modelo')===FALSE))
                                     $respuesta['plantillas'][$pla_id]['adjuntos_generados'][] = $dirname . $nombre;
+								  else 
+                                    l('Ya posee servicios activos: ' . $dirname . $nombre);
+                                
                                 } else {
                                     l('No existe el archivo plantilla: ' . $ruta_plantilla);
                                 }
@@ -1020,7 +1090,10 @@ EOT;
                             //$msg = file_get_contents('adjunto.html');
                             //$msg = utf8_decode($msg);
                             $snappy->generateFromHtml($msg, $dirname . $nombre, array('encoding' => 'utf-8'));
+							if($rc['servicios_activos']==0 or (strpos($adjunto_plantilla['arc_nombre'],'NIVEL')===FALSE && strpos($adjunto_plantilla['arc_nombre'],'CONTRATO')===FALSE && strpos($adjunto_plantilla['arc_nombre'],'Modelo')===0 ))
                             $respuesta['plantillas'][$pla_id]['adjuntos_generados'][] = $dirname . $nombre;
+							else 
+                            l('Ya posee servicios activos: ' . $dirname . $nombre);
                         }
                         $respuesta['plantillas'][$pla_id]['pdf_generado'] = $nombre;
 

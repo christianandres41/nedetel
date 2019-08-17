@@ -6,9 +6,10 @@ require_once('../private/bdd.php');
 require_once('../vendor/autoload.php');
 
 $path = $_GET['path'];
-
+$path=str_replace(';','&',$path);
+//var_dump($_REQUEST);
 $path = explode('/', $path);
-
+//var_dump($path);
 $nedetel_objeto = (empty($path[0])) ? 'main' : array_shift($path);
 if ($nedetel_objeto[0] == '_' || isset($_SESSION['cedula'])){
 } else {

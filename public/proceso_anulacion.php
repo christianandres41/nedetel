@@ -2,8 +2,14 @@
 //echo ($_solo_lectura ? 'SI solo lectura' : 'NO solo lectura');
 //echo '<pre>';
 //var_dump($_SESSION['seguridades']);
-//var_dump($_SESSION);
 //echo '</pre>';
+
+$titulo_proceso = 'Servicios';
+
+$filtro = "(SELECT esa_id FROM sai_estado_atencion WHERE esa_padre=(SELECT esa_id FROM sai_estado_atencion WHERE esa_nombre = 'Servicio'))";
+
+
+
     $result_destinatarios = q("
         SELECT des_nombre FROM sai_destinatario
     ");
@@ -120,7 +126,7 @@ desired effect
 
       <!-- Sidebar Menu -->
       <ul class="sidebar-menu tree" data-widget="tree">
-        <li class="header">ESTADOS DE ATENCIONES</li>
+        <!--li class="header">ESTADOS DE ATENCIONES</li-->
 <?php
 $result = q("
     SELECT * 
@@ -176,7 +182,7 @@ EOF;
 EOF;
         }
     }
-    p_tree($tree[""]['hijos']);
+    #p_tree($tree[""]['hijos']);
     //echo "<pre>";
     //var_dump($tree[""]);
 
@@ -189,13 +195,16 @@ if (isset($args[0]) && !empty($args[0])) {
     $esa_id = intval($args[0]);
     $filtro = " AND tea_estado_atencion_actual = $esa_id";
 }
-
+#####################
+	#ID PARA SERVICIOS SUSPENDIDOS
+	$esa_id=28;
+	$filtro = " AND tea_estado_atencion_actual = $esa_id";
+	
 if (isset($args[1]) && !empty($args[1])) {
     $busqueda = pg_escape_string($args[1]);
     $busqueda = strtolower($busqueda);
-	$busqueda_cli = strtolower($busqueda);
     $ate_secuencial_busqueda = intval($busqueda);
-    $filtro_busqueda = " AND ate_secuencial = $ate_secuencial_busqueda OR ate_codigo ILIKE '%{$busqueda}%' or cli_razon_social ILIKE '%{$busqueda}%' or usu_comercial.usu_username ILIKE '%{$busqueda}%'";
+    $filtro_busqueda = " AND ate_secuencial = $ate_secuencial_busqueda OR ate_codigo ILIKE '%{$busqueda}%'";
 }
 
 if (!empty($esa_id)) {
@@ -251,6 +260,9 @@ $sql = ("
         ORDER BY paa_creado DESC
         LIMIT 1 
     ) AS fecha_vigencia
+    ,(
+        DATE_PART('day', now() - ate_fecha_cambio_estado)
+    ) AS dias_suspencion
 
     FROM sai_atencion
 
@@ -308,7 +320,7 @@ $sql = ("
         $filtro_busqueda
 
     ORDER BY 
-        ate_id DESC, estado_actual_id DESC, estado_siguiente_orden
+        ate_fecha_cambio_estado ASC, ate_id DESC, estado_actual_id DESC, estado_siguiente_orden
         ,ate_creado DESC
 ");
 $result = q($sql);
@@ -333,18 +345,19 @@ if ($result) {
         $r = $atencion;
 
         $fecha_formateada = p_formatear_fecha($r['ate_creado']);
+        $dias_suspencion = $r['dias_suspencion'];
         $estado_actual = empty($r[estado_actual]) ? 'ATENCION SIN ESTADO': $r[estado_actual];
-        $codigo = empty($r[ate_codigo]) ? '' : " , ID: <strong>{$r[ate_codigo]}</strong>";
+        $codigo = empty($r[ate_codigo]) ? '' : "  ID: <strong>{$r[ate_codigo]}</strong>";
         echo <<<EOT
       <a name="atencion_{$r[ate_secuencial]}"></a>
 <div class="panel panel-info panel-atencion" id="panel_atencion_{$r[ate_id]}"  xxxstyle="width:500px;">
   <div class="panel-heading">
     <div class="pull-right">
-      $fecha_formateada 
+      $dias_suspencion días
     </div>
     <h3 class="panel-title">
       <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse_{$r[ate_secuencial]}" aria-expanded="false" aria-controls="collapse_{$r[ate_secuencial]}" >
-        {$r[ate_secuencial]}. <strong>{$estado_actual}</strong> para servicio de {$r[ser_nombre]} ({$r[pro_nombre_comercial]}) a {$r[cli_razon_social]} $codigo
+        {$r[ate_secuencial]}. <!--span><strong>{$estado_actual}</strong> para servicio de {$r[ser_nombre]} ({$r[pro_nombre_comercial]}) a {$r[cli_razon_social]} <span--> $codigo
       </a>
     </h3>
   </div>
@@ -361,24 +374,24 @@ EOT;
 
         if (!$_solo_lectura && !$es_fin) {
             echo <<<EOT
-      <div class="pull-right well" style="padding:20px;margin:20px;">
-      <h4>Pasar a un siguiente estado:</h4>
+      <div class="pull-right well" style="padding:20px;margin:20px;text-align:center;">
+      <h4>Generar notificación:</h4>
 EOT;
-            foreach ($estados_siguentes as $estado_siguiente_id => $estado_siguiente) {
-                $rsig = $estado_siguiente;
+            #foreach ($estados_siguentes as $estado_siguiente_id => $estado_siguiente) {
+             #   $rsig = $estado_siguiente;
                 echo <<<EOT
 <form method="POST" onsubmit="return p_validar_transicion(this, {$rsig['tea_id']}, {$rsig['ate_id']}, {$rsig['estado_siguiente_id']})">
 <input type="hidden" name="estado" value="{$rsig['estado_siguiente_id']}">
 <input type="hidden" name="tea_id" value="{$rsig['tea_id']}">
 <input type="hidden" name="id" value="{$rsig['ate_id']}">
-<button class="btn btn-success">
-<span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>
+<button class="btn btn-warning" style="align:center;">
+<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
  {$rsig['estado_siguiente']}
 </button>
 </form>
 EOT;
 
-            }
+            #}
             echo '</div>';
         }
 
@@ -402,7 +415,13 @@ EOT;
       //<strong>Dependencia de empresas:</strong> {$r[cue_codigo]}
         echo <<<EOT
     <div class="panel-body">
-      <strong>Dependencia de empresas:</strong> <span data-cue-id="{$r[cue_id]}" id="cuenta_{$r[ate_id]}"></span>
+      <span><strong>Dependencia de empresas:</strong> <span data-cue-id="{$r[cue_id]}" id="cuenta_{$r[ate_id]}"></span>
+      <br>
+      <span><strong>Servicio:</strong> {$r[ser_nombre]}
+      <br>
+	<span><strong>Proveedor:</strong> {$r[pro_nombre_comercial]}
+      <br>
+<span><strong>Razón social:</strong> {$r[cli_razon_social]}
       <br>
       <strong>Contacto de la empresa:</strong> {$r[con_nombres]} {$r[con_apellidos]} ({$contacto_empresa})
       <br>
@@ -410,10 +429,10 @@ EOT;
       <br>
       <strong>Usuario comercial:</strong> {$r[usu_comercial_nombre]}
       <br>
-      <strong>Fecha de transición:</strong> {$r[fecha_vigencia]}
+      <strong>Fecha de transición:</strong> {$r[fecha_vigencia]} <span>
 <div id="campos_estado_vigente_{$r[ate_id]}"></div>
       <div>&nbsp;</div>
-<a class="btn btn-info" href="#" onclick="p_toggle_historico({$r[ate_id]}, {$r[ate_secuencial]});return false;">Mostrar historial</a>
+<!--a class="btn btn-info" href="#" onclick="p_toggle_historico({$r[ate_id]}, {$r[ate_secuencial]});return false;">Mostrar historial</a-->
 <!--
         <table id="tabla_historico_{$r[ate_id]}" style="width:400px;display:none;" class="table table-striped table-condensed table-hover">
         <tbody id="valores_historicos_{$r[ate_id]}">
@@ -608,9 +627,9 @@ EOT;
 </div>
 <!-- ./wrapper -->
 
-<?php if (isset($mostrar_nuevo) && $mostrar_nuevo && !$_solo_lectura): ?>
-<a href="#" onclick="p_nuevo();return false;" style="position:fixed;bottom:50px;right:10px;"><img src="/img/plus.png" alt="Crear nuevo registro" title="Crear nuevo registro" ></img></a>
-<?php endif; ?>
+<?php /*if (isset($mostrar_nuevo) && $mostrar_nuevo && !$_solo_lectura): ?>
+<!--a href="#" onclick="p_nuevo();return false;" style="position:fixed;bottom:50px;right:10px;"><img src="/img/plus.png" alt="Crear nuevo registro" title="Crear nuevo registro" ></img></a-->
+<?php endif;*/ ?>
 <!-- REQUIRED JS SCRIPTS -->
 
 <!-- AdminLTE App -->
@@ -938,123 +957,6 @@ min-height: 30px;
 overflow: hidden;
 }
 </style>
-
-<div id="modal_detalle_precio" class="modal fade autoalto" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-nuevo-title"><span id="detalle_precio_titulo"></span></h4>
-      </div>
-      <div class="modal-body">
-        <div class="form-horizontal" id="detalle_precio_contenido">
-<div class="form-group">
-          <?php $col1=2;$col2=4; ?>
-		  
-            <label class="col-sm-<?=$col1?> control-label">Descripción:</label>
-            <div class="col-sm-<?=$col2?>">
-              <span class="form-control" id="detalle_precio_nombre"></span>
-            </div>
-
-            <label class="col-sm-<?=$col1?> control-label">Valor:</label>
-            <div class="col-sm-<?=$col2?>">
-              <span class="form-control" id="detalle_precio_precio"></span>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="col-sm-<?=$col1?> control-label">Fecha de vigencia:</label>
-            <div class="col-sm-<?=$col2?>">
-              <span class="form-control" id="detalle_precio_fecha_vigencia"></span>
-            </div>
-
-            <label class="col-sm-<?=$col1?> control-label">Fecha de creación:</label>
-            <div class="col-sm-<?=$col2?>">
-              <span class="form-control" id="detalle_precio_creado"></span>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="col-sm-<?=$col1?> control-label">Servicio:</label>
-            <div class="col-sm-<?=$col2?>">
-              <span class="form-control" id="detalle_precio_servicio"></span>
-            </div>
-            <label class="col-sm-<?=$col1?> control-label">Empresa:</label>
-            <div class="col-sm-<?=$col2?>">
-              <span class="form-control" id="detalle_precio_cliente"></span>
-            </div>
-
-          </div>
-		
-		<div class="form-group">
-            <label class="col-sm-<?=$col1?> control-label">Creado por:</label>
-            <div class="col-sm-<?=$col2?>">
-              <span class="form-control" id="detalle_precio_creado_por"></span>
-            </div>
-          </div>
-          
-        </div>
-		</div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="modal_detalle_costo" class="modal fade autoalto" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-nuevo-title"><span id="detalle_costo_titulo"></span></h4>
-      </div>
-      <div class="modal-body">
-        <div class="form-horizontal" id="detalle_costo_contenido">
-<div class="form-group">
-          <?php $col1=2;$col2=4; ?>
-
-            <label class="col-sm-<?=$col1?> control-label">Descripción:</label>
-            <div class="col-sm-<?=$col2?>">
-              <span class="form-control" id="detalle_costo_nombre"></span>
-            </div>
-
-            <label class="col-sm-<?=$col1?> control-label">Valor:</label>
-            <div class="col-sm-<?=$col2?>">
-              <span class="form-control" id="detalle_costo_costo"></span>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="col-sm-<?=$col1?> control-label">Fecha de vigencia:</label>
-            <div class="col-sm-<?=$col2?>">
-              <span class="form-control" id="detalle_costo_fecha_vigencia"></span>
-            </div>
-
-            <label class="col-sm-<?=$col1?> control-label">Fecha de creación:</label>
-            <div class="col-sm-<?=$col2?>">
-              <span class="form-control" id="detalle_costo_creado"></span>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="col-sm-<?=$col1?> control-label">Pertinencia de proveedor:</label>
-            <div class="col-sm-<?=$col2?>">
-              <span class="form-control" id="detalle_costo_servicio"></span>
-            </div>
-
-          </div>
-
-
-        </div>
- </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 
 <div id="modal_detalle_nodo" class="modal fade autoalto" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg" role="document">
@@ -1637,7 +1539,7 @@ $(document).ready(function() {
         console.log("show", $(this).prop('id'));
 
         ate_id = parseInt($(this).prop('id').replace('panel_atencion_', ''));
-        $.get('/_obtenerValoresVigentes/'+ate_id, function(data){
+/*        $.get('/_obtenerValoresVigentes/'+ate_id, function(data){
             console.log('/_obtenerValoresVigentes/'+ate_id, data);
             data = JSON.parse(data);
             console.log('data', data);
@@ -1646,26 +1548,20 @@ $(document).ready(function() {
             data.forEach(function(campo){
                 var valor_detallado = (campo['valor_detallado']  == null) ? '' : campo['valor_detallado'];
                 console.log('CAMPO', campo);
-		
-		var excluir=false;		
-		
+
                 if (campo['nodo']) {
                     var nod_id = campo['valor'];
                     valor_detallado = '<a href="#" onclick="p_abrir_detalle_nodo('+nod_id+');return false;">'+valor_detallado+'</a>';
                 }
-		if (campo['costo_proveedor']) {
-		if (!(1== <?= ($_SESSION['rol']== '1' || $_SESSION['rol']== '3' || $_SESSION['rol']== '4' || $_SESSION['rol']== '9' )? '1': '0'; ?> ))
-			excluir=true; 
-                    var cop_id = campo['costo_proveedor_id'];
+				if (campo['costo_proveedor']) {
+                    var cop_id = campo['valor'];
                     valor_detallado = '<a href="#" onclick="p_abrir_detalle_costo_proveedor('+cop_id+');return false;">'+valor_detallado+'</a>';
                 }
-		if (campo['precio_cliente']) {
-		if (!(1== <?= ($_SESSION['rol']== '1' || $_SESSION['rol']== '3' || $_SESSION['rol']== '4' || $_SESSION['rol']== '9' )? '1': '0'; ?> ))
-                        excluir=true;
-                    var prc_id = campo['precio_cliente_id'];
+				if (campo['precio_cliente']) {
+                    var prc_id = campo['valor'];
                     valor_detallado = '<a href="#" onclick="p_abrir_detalle_precio_cliente('+prc_id+');return false;">'+valor_detallado+'</a>';
                 }
-		if(!(excluir))
+
                 campos_estado_vigente += ''
                     + '<tr>'
                     + '<th style="width:50%;text-align:right;">' + campo['etiqueta'] + ':</th>'
@@ -1677,6 +1573,7 @@ $(document).ready(function() {
             $('#campos_estado_vigente_'+ate_id).html(campos_estado_vigente);
 
         });
+*/
         var cue_id = $('#cuenta_' + ate_id).attr('data-cue-id');
         $.get('/_obtenerCuenta/' + cue_id, function(data){
             console.log('Resultado /_obtenerCuenta/' + cue_id, data);
@@ -1720,7 +1617,6 @@ $(document).ready(function() {
         console.log('ate_id', ate_id);
         $('#collapse_' + ate_id).collapse('show');
     }
-
     $("#modal").on("shown.bs.modal", function () {
         //google.maps.event.trigger(map, "resize");
         $("#modal").off("shown.bs.modal");
@@ -1737,53 +1633,6 @@ function p_abrir_detalle_nodo_desde_historial(ate_id, nod_id){
             $('#modal_detalle_nodo').off('hidden.bs.modal');
         });
         p_abrir_detalle_nodo(nod_id);
-    });
-}
-function p_abrir_detalle_precio_cliente(prc_id){
-    console.log('En p_abrir_detalle_precio', prc_id);
-    $.get('/_obtenerPrecio/' + prc_id, function(data){
-        console.log('/_obtenerPrecio/' + prc_id, data);
-        data = JSON.parse(data);
-        console.log('data:', data);
-        if (data) {
-            var precio = data[0];
-            var contenido = '';
-            contenido += '<>';
-            var titulo = '';
-                titulo = 'Detalle de ' + precio['prc_nombre'];
-                $('#detalle_precio_titulo').text(titulo);
-                $('#detalle_precio_nombre').text(precio['prc_nombre']);
-                $('#detalle_precio_precio').text(precio['prc_precio_mb']);
-                $('#detalle_precio_cliente').text(precio['cli_razon_social']);
-                $('#detalle_precio_servicio').text(precio['ser_nombre']);
-                $('#detalle_precio_fecha_vigencia').text(precio['prc_fecha_ejecucion']);
-                $('#detalle_precio_creado').text(precio['prc_creado']);
-				$('#detalle_precio_creado_por').text(precio['prc_creado_por']);
-                $('#modal_detalle_precio').modal('show');
-        }
-    });
-}
-
-function p_abrir_detalle_costo_proveedor(cop_id){
-    console.log('En p_abrir_detalle_costo', cop_id);
-    $.get('/_obtenerCosto/' + cop_id, function(data){
-        console.log('/_obtenerCosto/' + cop_id, data);
-        data = JSON.parse(data);
-        console.log('data:', data);
-        if (data) {
-            var costo = data[0];
-            var contenido = '';
-            contenido += '<>';
-            var titulo = '';
-                titulo = 'Detalle de ' + costo['cop_nombre'];
-                $('#detalle_costo_titulo').text(titulo);
-                $('#detalle_costo_nombre').text(costo['cop_nombre']);
-                $('#detalle_costo_costo').text(costo['cop_costo_mb']);
-                $('#detalle_costo_servicio').text(costo['pep_nombre']);
-                $('#detalle_costo_fecha_vigencia').text(costo['cop_fecha_ejecucion']);
-                $('#detalle_costo_creado').text(costo['cop_creado']);
-                $('#modal_detalle_costo').modal('show');
-        }
     });
 }
 
@@ -1854,7 +1703,7 @@ function p_abrir_detalle_nodo(nod_id){
 
 function p_enviar_busqueda(target) {
     var busqueda = $('#busqueda_query').val();
-    $(target).prop('action', '/proceso/0/' + busqueda);
+    $(target).prop('action', '/proceso_anulacion/0/' + busqueda);
 }
 
 function p_toggle_historico(ate_id, ate_secuencial){
@@ -2034,10 +1883,10 @@ function p_inicializar_autocompletar(id){
             return item.name;
         }
     });
-   $('.typeahead-costo_proveedor').typeahead({
+	
+	$('.typeahead-costo_proveedor').typeahead({
         source:function(query, process){
-	    ate_id = parseInt($('#ate_id').val());
-            $.get('/_listarCostos_proveedor/' + query + '/' + ate_id , function(data){
+            $.get('/_listarCostos_proveedor/' + query, function(data){
                 console.log(data);
                 data = JSON.parse(data);
                 process(data.lista);
@@ -2064,10 +1913,9 @@ function p_inicializar_autocompletar(id){
             return item.name;
         }
     });
-  $('.typeahead-precio_cliente').typeahead({
+	$('.typeahead-precio_cliente').typeahead({
         source:function(query, process){
-	    ate_id = parseInt($('#ate_id').val());
-            $.get('/_listarPrecios_cliente/' + query + '/' + ate_id , function(data){
+            $.get('/_listarPrecios_cliente/' + query, function(data){
                 console.log(data);
                 data = JSON.parse(data);
                 process(data.lista);
@@ -2092,64 +1940,6 @@ function p_inicializar_autocompletar(id){
             $('#campo_extra_grupo_'+id).hide();
             $('#campo_extra_detalle_'+id).show();
             return item.name;
-        }
-    });
-	/*$('.typeahead-tipo_conexion_iru').typeahead({
-        source:function(query, process){
-	    ate_id = parseInt($('#ate_id').val());
-		//return '/_listar/parroquia/borrado/null/canton/'+ can_id +'/nombre/ilike-' + busqueda + '/';
-            $.get('/_listar/tipo_conexion_iru/borrado/null/nombre/ilike-' + query + '/' , function(data){
-                console.log(data);
-                data = JSON.parse(data);
-                process(data.lista);
-            });
-        },
-        displayField:'name',
-        valueField:'id',
-        highlighter:function(name){
-            var ficha = '';
-            ficha +='<div>';
-            ficha +='<h4>'+name+'</h4>';
-            ficha +='</div>';
-            return ficha;
-        },
-        updater:function(item){
-            var id = $(this.$element[0]).prop('id').split('_').pop();
-
-            console.log('typeahead ID:' , id);
-
-            $('#campo_extra_'+id).val(item.id);
-            $('#campo_extra_detalle_valor_'+id).text(item.name);
-            $('#campo_extra_grupo_'+id).hide();
-            $('#campo_extra_detalle_'+id).show();
-            return item.name;
-        }
-    });*/
-	$('.c-tipo_conexion_iru').select2({
-        language: "es"
-        ,width: '100%'
-        ,ajax: {
-            url: function (params) {
-                console.log('SELECT2 URL params:', params);
-                var busqueda = (params.term) ? params.term : '';
-                return '/_listar/tipo_conexion_iru/borrado/null/nombre/ilike-' + busqueda + '/';
-            }
-            ,data:function(){return '';}
-            ,processResults: function (data) {
-                console.log('Respuesta /_listar/tipo_conexion_iru/borrado/null/nombre/ilike-', data);
-                data = JSON.parse(data);
-                console.log('data',data);
-                var opciones = [];
-                data.forEach(function(opcion){
-                    opciones.push( {
-                        "id": opcion['nombre']
-                        ,"text":opcion['nombre']
-                    });
-                });
-                return {
-                    results: opciones
-                };
-            }
         }
     });
 }
@@ -2537,7 +2327,7 @@ function p_abrir_confirmacion(target, tea_id, ate_id, estado_siguiente_id) {
                     var boton_borrar = '<button class="btn btn-danger" onclick="p_quitar_adjunto(this)"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>';
                     var nombre_archivo = archivo.split('/').pop();
                     //$('#adjuntos_lista_'+destinatario).append(hidden + '<div><a class="btn btn-default" href="/' + plantilla.textos[2] + '">' + icono + plantilla.textos[2] + '</a></div>');
-                    $('#adjuntos_lista_'+destinatario).append('<div>' + hidden + '<a class="btn btn-default" href="/' + archivo + '">' + icono + nombre_archivo + '</a> '+boton_borrar+'</div>');
+                    $('#adjuntos_lista_'+destinatario).append(hidden + '<div><a class="btn btn-default" href="/' + archivo + '">' + icono + nombre_archivo + '</a> '+boton_borrar+'</div>');
                 });
             }
         });
@@ -2578,7 +2368,7 @@ function p_cargar_adjunto(target, destinatario) {
                    var hidden = '<input type="hidden" name="adjunto_' + destinatario + '[]" value="' + ruta + '">';
                    var boton_borrar = '<button class="btn btn-danger" onclick="p_quitar_adjunto(this)"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>';
                    //$('#adjuntos_lista_'+destinatario).append(hidden + '<div><a class="btn btn-default" href="/' + plantilla.textos[2] + '">' + icono + plantilla.textos[2] + '</a></div>');
-                   $('#adjuntos_lista_'+destinatario).append('<div>' +hidden + '<a class="btn btn-default" href="/' + ruta + '">' + icono + archivo + '</a> '+boton_borrar+'</div>');
+                   $('#adjuntos_lista_'+destinatario).append(hidden + '<div><a class="btn btn-default" href="/' + ruta + '">' + icono + archivo + '</a> '+boton_borrar+'</div>');
                    $(target).val('');
                }
            }
@@ -3028,7 +2818,6 @@ function p_desplegar_campos(campos, padre_id) {
                         descripcion = campo['costo_proveedor'];
                         grupo_style = 'style="display:none;"';
                         detalle_style = '';
-			valor = campo['costo_proveedor_id'];
                     }
 
                     var contenido_costo_proveedor = '';
@@ -3058,7 +2847,7 @@ function p_desplegar_campos(campos, padre_id) {
                             '</div>' +
                         '</div>'+
                         '';
-                }	else if (campo['tipo_dato'] == 'precio_cliente') {
+                } else if (campo['tipo_dato'] == 'precio_cliente') {
                     var descripcion = '';
                     var grupo_style = '';
                     var detalle_style = 'style="display:none;"';
@@ -3067,7 +2856,6 @@ function p_desplegar_campos(campos, padre_id) {
                         descripcion = campo['precio_cliente'];
                         grupo_style = 'style="display:none;"';
                         detalle_style = '';
-			valor = campo['precio_cliente_id'];
                     }
 
                     var contenido_precio_cliente = '';
@@ -3095,27 +2883,7 @@ function p_desplegar_campos(campos, padre_id) {
                             '</div>' +
                         '</div>'+
                         '';
-                }	else if (campo['tipo_dato'] == 'tipo_conexion_iru') {
-                    var descripcion = '';
-                    var grupo_style = '';
-                    var detalle_style = 'style="display:none;"';
-
-                    if (campo['valor']) {
-                        descripcion = campo['tipo_conexion_iru'];
-                        grupo_style = 'style="display:none;"';
-                        detalle_style = '';
-						valor = '<option value="'+campo['valor']+'" selected=TRUE>'+campo['valor']+'</option>';
-						}
-
-                    var contenido_precio_cliente = '';
-					contenido += '<div class="form-group">' +
-                        '<label for="campo_extra_' + campo['cae_id'] + '" class="col-sm-' + col1 + ' control-label">' + campo['cae_texto'] + ':</label>' +
-                        '<div class="col-sm-' + col2 + '">' +
-                        '<select '+campo['cae_validacion']+' class="form-control combo-select2 c-tipo_conexion_iru" id="campo_extra_'+campo['cae_id']+'" name="campo_extra_'+campo['cae_id']+'" placeholder="" value="" onblur="p_validar(this)"> ' + valor + ' </select>' +
-                        '</div>' +
-                        '</div>';
-                                        
-                }else {
+                }	else {
                     contenido += '<div class="form-group">' +
                         '<label for="campo_extra_' + campo['cae_id'] + '" class="col-sm-' + col1 + ' control-label">' + campo['cae_texto'] + ':</label>' +
                         '<div class="col-sm-' + col2 + '">' +
@@ -3283,7 +3051,6 @@ function p_guardar(){
     if (p_validar($('#formulario'))) {
         $('#formulario').find('.typeahead').each(function(){$(this).prop('disabled', true)});
         var dataset = $('#formulario').serialize();
-		console.log('dataset: ', dataset   );
         $('#formulario').find('.typeahead').each(function(){$(this).prop('disabled', false)});
 
         console.log('dataset: ', dataset   );
@@ -3495,8 +3262,8 @@ function p_cargar_contactos_cuentas(target) {
 
     var cli_id = $(target).val();
     if (cli_id) {
-        $.get('/_listar/contacto/borrado/null/cliente/' + cli_id, function(data){
-            console.log('/_listar/contacto/borrado/null/cliente/'+cli_id, data);
+        $.get('/_listar/contacto/cliente/' + cli_id, function(data){
+            console.log('/_listar/contacto/cliente/'+cli_id, data);
             data = JSON.parse(data);
             console.log('data:', data);
             console.log('tipos_contactos:', tipos_contactos);

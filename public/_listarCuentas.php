@@ -16,6 +16,7 @@ echo json_encode($result);
 $query = '';
 $filtro_cliente = '';
 $filtro_cuenta = '';
+$filtro_padre = '';
 
 if (isset($args[0]) && !empty($args[0])) {
     $filtro_cuenta = "AND cue_id <> {$args[0]}";
@@ -27,6 +28,10 @@ if (isset($args[1]) && !empty($args[1])) {
 
 if (isset($args[2]) && !empty($args[2])) {
     $query = $args[2];
+}
+
+if (isset($args[3]) && !empty($args[3])) {
+    $filtro_padre = 'AND (cue_padre = ' . $args[3] .' OR cue_id= ' . $args[3].')';
 }
 
 
@@ -71,7 +76,8 @@ $sql = ("
         )
         $filtro_cliente
         $filtro_cuenta
-    ) AS t
+		$filtro_padre
+    ) AS t order by 1 desc
 ");
 
 //echo "[[$sql]]";

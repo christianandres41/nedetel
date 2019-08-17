@@ -87,8 +87,8 @@ if (!empty($dataset_json)) {
                     $sql = ("
                         UPDATE sai_cuenta 
                         SET  
-                        cue_peso = {$dataset->peso}
-                        ,cue_padre = {$padre}
+                        /*cue_peso = {$dataset->peso},*/
+                        cue_padre = {$padre}
                         ,cue_cliente = {$dataset->cliente}
                         ,cue_responsable_cobranzas = {$dataset->responsable_cobranzas}
                         ,cue_codigo = '$cue_codigo'
